@@ -6,33 +6,42 @@ from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
 import time
 import pandas as pd
-import threading
+import re
 
 class spider_aliexp():
     def __init__(self):
         self.driver = []
-        self.mutex = threading.Lock()
         self.results = pd.DataFrame({})
-        self.results_title = []
-        self.results_price = []
-        self.results_commit_score = []
-        self.results_commit_times = []
-        self.results_orders = []
-        self.results_store = []
 
+    def open_web(self,proxy_ip,webdrv,url):
+        self.open_web_driver(proxy_ip,webdrv)
+        self.open_web_url(url)
 
-    def open_web(self,proxy_ip,url):
+    def open_web_driver(self,proxy_ip,webdrv):
         PROXY = proxy_ip # IP:PORT or HOST:PORT
+        
+        if webdrv == 'PhantomJS':
+            self.driver = webdriver.PhantomJS()
+        else:
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument("user-data-dir="+ os.path.abspath(r"C:\Users\yy\AppData\Local\Google\Chrome\User Data"))
+            if PROXY != '':
+                chrome_options.add_argument('--proxy-server=http://'+PROXY)
+            self.driver = webdriver.Chrome(chrome_options=chrome_options)
+        
+##        service_args = [
+##         '--proxy=127.0.0.1:9999',
+##         '--proxy-type=socks5',
+##         ]
+##        self.driver = webdriver.PhantomJS(service_args=service_args)
+
+        
+    def open_web_url(self,url):
         if url == '':
             url = "http://www.aliexpress.com"
-
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("user-data-dir="+ os.path.abspath(r"C:\Users\yy\AppData\Local\Google\Chrome\User Data"))
-        if PROXY != '':
-            chrome_options.add_argument('--proxy-server=http://'+PROXY)
-        self.driver = webdriver.Chrome(chrome_options=chrome_options)
         self.driver.get(url)
 
+        
     def get_index(self):
         root_path = '//dl[@data-role="first-menu"]'
         cate_name_path = '/dt/span'
@@ -74,9 +83,6 @@ class spider_aliexp():
         df.to_csv('ali_cate_list.csv',encoding='utf-8')
         return df
 
-    def get_results_count(self):
-        elems = self.driver.find_elements_by_xpath('//div[@class="search-result"]/p/strong[@class="search-count"]')
-        print elems[0].text
 
     def search_item(self,target):
         search_key = target
@@ -90,42 +96,44 @@ class spider_aliexp():
 #        js="var q=document.body.scrollTop=10000"
 #        self.driver.execute_script(js)
 
+    def get_search_count(self):
+        elems = self.driver.find_elements_by_xpath('//div[@class="search-result"]//strong[@class="search-count"]')
+        try:
+            result = int(elems[0].text)
+        except:
+            result = 'none'
+        return result
+        
     def get_page_num(self):
 
         elems = self.driver.find_elements_by_xpath('//span[@id="pagination-max"]')
-        page_num = elems[0].get_attribute('innerHTML')
-        print 'page_max:'+page_num
-        return page_num
+        try:
+            page_num = int(elems[0].get_attribute('innerHTML'))
+            return page_num
+        except:
+            return 1
 
     def go_page(self,page):
         elems = self.driver.find_elements_by_xpath('//input[@id="pagination-bottom-input"]')
-        elems[0].send_keys(Keys.BACKSPACE + Keys.BACKSPACE + Keys.BACKSPACE + str(page) + Keys.RETURN)
-        time.sleep(1)
+        elems[0].send_keys(Keys.BACKSPACE + Keys.BACKSPACE + Keys.BACKSPACE + str(page))
+        elems[0].send_keys(Keys.RETURN)
+        
+        time.sleep(0.5)
         js="var q=document.body.scrollTop=10000"
         self.driver.execute_script(js)
 
     def get_item(self):
-
-        page_type = self.driver.find_elements_by_xpath('//div[@id="main-wrap"]')[0].get_attribute('class')
+        try:
+            page_type = self.driver.find_elements_by_xpath('//div[@id="main-wrap"]')[0].get_attribute('class')
+        except:
+            return 'error'
         # print page_type
         if page_type == 'main-wrap gallery-mode':
             print page_type
             xpath_root = '//div[@id="list-items"]/ul/li'
-            xpath_title = '//div[@class="info"]/h3/a'
-            xpath_price = '//div[@class="info"]/span[@class="price price-m"]/span[1]'
-            xpath_commit_score = '//div[@class="info"]/div[@class="rate-history"]/span[@class="star star-s"]'
-            xpath_commit_times = '//div[@class="info"]/div[@class="rate-history"]/a[@class="rate-num "]'
-            xpath_orders = '//div[@class="info"]/div[@class="rate-history"]/span[@class="order-num"]/a/em'
-            xpath_store  = '//div[@class="info-more"]/div[@class="store-name-chat"]/div/a'
         elif page_type == 'main-wrap ':
             print page_type
             xpath_root = '//div[@id="main-wrap"]/ul[@id="list-items"]/li'
-            xpath_title = '//div[@class="detail"]/h3/a'
-            xpath_price = '//div[@class="info infoprice"]/span[@class="price price-m"]/span[1]'
-            xpath_commit_score = '//div[@class="info infoprice"]/div[@class="rate-history"]/span[@class="star star-s"]'
-            xpath_commit_times = '//div[@class="info infoprice"]/div[@class="rate-history"]/a'
-            xpath_orders       = '//div[@class="info infoprice"]/div[@class="rate-history"]//em[@title="Total Orders"]'
-            xpath_store        = '//div[@class="detail"]/div/span/a[2]'
         else:
             print 'error unknow page type'
 
@@ -146,140 +154,188 @@ class spider_aliexp():
             num = len(elems)
         print num
 
-        thrs = []
-        t = threading.Thread(target = self.get_sub_item, args = ('title',num,xpath_root,xpath_title,''))
-        thrs.append(t)
-        t = threading.Thread(target = self.get_sub_item, args = ('price',num,xpath_root,xpath_price,'',))
-        thrs.append(t)
-        t = threading.Thread(target = self.get_sub_item, args = ('commit_score',num,xpath_root,xpath_commit_score,'title'))
-        thrs.append(t)
-        t = threading.Thread(target = self.get_sub_item, args = ('commit_times',num,xpath_root,xpath_commit_times,''))
-        thrs.append(t)
-        t = threading.Thread(target = self.get_sub_item, args = ('orders',num,xpath_root,xpath_orders,''))
-        thrs.append(t)
-        t = threading.Thread(target = self.get_sub_item, args = ('store',num,xpath_root,xpath_store,'title'))
-        thrs.append(t)
-
-        for t in thrs:
-            t.setDaemon(True) #保护进程不要在主进程结束后 也被结束
-            t.start()
-        for t in thrs:
-            t.join()
-
-        # elem_title = self.get_sub_item(num=num,xpath_root=xpath_root,xpath_item=xpath_title,attribute='')
-        # elem_price = self.get_sub_item(num=num,xpath_root=xpath_root,xpath_item=xpath_price,attribute='')
-        # elem_commit_score = self.get_sub_item(num=num,xpath_root=xpath_root,xpath_item=xpath_commit_score,attribute='title')
-        # elem_commit_times = self.get_sub_item(num=num,xpath_root=xpath_root,xpath_item=xpath_commit_times,attribute='')
-        # elem_orders = self.get_sub_item(num=num,xpath_root=xpath_root,xpath_item=xpath_orders,attribute='')
-        # elem_store = self.get_sub_item(num=num,xpath_root=xpath_root,xpath_item=xpath_store,attribute='title')
-
-        if num > 1:
-            self.results = self.results.append(pd.DataFrame({'elem_title':self.results_title,\
-                                                                 'elem_price':self.results_price,\
-                                                                 'elem_commit_score':self.results_commit_score,\
-                                                                 'elem_commit_times':self.results_commit_times,\
-                                                                 'elem_orders': self.results_orders,\
-                                                                 'elem_store':self.results_store}))
+        if page_type == 'main-wrap gallery-mode':
+            return self.get_item_sub1()
+        elif page_type == 'main-wrap ':
+            return self.get_item_sub2()
         else:
-            self.results = self.results.append(pd.DataFrame({'elem_title':[self.results_title],\
-                                                                 'elem_price':[self.results_price],\
-                                                                 'elem_commit_score':[self.results_commit_score],\
-                                                                 'elem_commit_times':[self.results_commit_times],\
-                                                                 'elem_orders': [self.results_orders],\
-                                                                 'elem_store':[self.results_store]}))
+            print 'none'
+            return 'none'
+##        
+        
+    def get_item_sub1(self):
+        response = self.driver.page_source
+        soup = BeautifulSoup(response, "html.parser")
 
-        # for i in range(num):
-        #     elem_title = self.driver.find_elements_by_xpath(xpath_root+'['+str(i+1)+']'+xpath_title)
-        #     elem_title = elem_title[0].text
-        #     elem_price = self.driver.find_elements_by_xpath(xpath_root+'['+str(i+1)+']'+xpath_price)
-        #     elem_commit_score = self.driver.find_elements_by_xpath(xpath_root+'['+str(i+1)+']'+xpath_commit_score)
-        #     elem_commit_times = self.driver.find_elements_by_xpath(xpath_root+'['+str(i+1)+']'+xpath_commit_times)
-        #     elem_orders = self.driver.find_elements_by_xpath(xpath_root+'['+str(i+1)+']'+xpath_orders)
-        #     elem_store  = self.driver.find_elements_by_xpath(xpath_root+'['+str(i+1)+']'+xpath_store)
-        #     try:
-        #         elem_price = elem_price[0].text
-        #     except:
-        #         elem_price = 'none'
-        #     try:
-        #         elem_commit_score = elem_commit_score[0].get_attribute("title")
-        #     except:
-        #         elem_commit_score = 'none'
-        #     try:
-        #         elem_commit_times = elem_commit_times[0].text
-        #     except:
-        #         elem_commit_times = 'none'
-        #     try:
-        #         elem_orders = elem_orders[0].text
-        #     except:
-        #         elem_orders = 'none'
-        #     try:
-        #         elem_store = elem_store[0].get_attribute("title")
-        #     except:
-        #         elem_store = 'none'
-        #
-        #     self.results = self.results.append(pd.DataFrame({'elem_title':[elem_title],\
-        #                                                      'elem_price':[elem_price],\
-        #                                                      'elem_commit_score':[elem_commit_score],\
-        #                                                      'elem_commit_times':[elem_commit_times],\
-        #                                                      'elem_orders':[elem_orders],\
-        #                                                      'elem_store':[elem_store]}))
+        elems = soup.find_all('div',id='list-items')
+        if len(elems) == 0:
+            return 'no items'
+        
+        elems = elems[0].find_all('li')
+        if len(elems) == 0:
+            return 'no items'
+        
+        for i in range(len(elems)):
+            elem_info = elems[i].find_all('div',class_='info')
+            elem_title = elem_info[0].find_all('h3')
+            elem_title = elem_title[0].find_all('a')
+            
+            elem_price = elem_info[0].find_all('span',class_='value')
+            elem_order = elem_info[0].find_all('em',title='Total Orders')
+            elem_star     = elem_info[0].find_all('span',class_='star star-s')
+            elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
 
-    def get_sub_item(self,item_name,num,xpath_root,xpath_item,attribute):
-        results = []
-        if self.mutex.acquire(1):
-            driver_temp = self.driver
-            self.mutex.release()
-        for i in range(num):
-            elems = driver_temp.find_elements_by_xpath(xpath_root+'['+str(i+1)+']'+xpath_item)
+            elem_infomore = elems[i].find_all('div',class_='info-more')
+            elem_store    = elem_infomore[0].find_all(name='a', attrs={'class':re.compile(r"(store|store j-p4plog)")})
+
+            store_property = elem_infomore[0].find_all('img',class_='score-icon')
+            
+            elem_title = elem_title[0].text
+            
             try:
-                if attribute == '':
-                    elem = elems[0].text
-                else:
-                    elem = elems[0].get_attribute(attribute)
+                elem_price = elem_price[0].text
             except:
-                elem = 'none'
-            results.append(elem)
+                elem_price = 'none'
+            
+            try:
+                elem_order = elem_order[0].text
+            except:
+                elem_order = 'none'
 
-            if item_name == 'title':
-                self.results_title = results
-            elif item_name == 'price':
-                self.results_price = results
-            elif item_name == 'commit_score':
-                self.results_commit_score = results
-            elif item_name == 'commit_times':
-                self.results_commit_times = results
-            elif item_name == 'orders':
-                self.results_orders = results
-            elif item_name == 'store':
-                self.results_store = results
-        # return results
+            try:
+                elem_star = elem_star[0].get('title')
+            except:
+                elem_star = 'none'
 
+            try:
+                elem_feedback = elem_feedback[0].text
+            except:
+                elem_feedback = '(0)'
+
+            try:
+                elem_store = elem_store[0].get('title')
+            except:
+                elem_store = 'none'
+ 
+            try:
+                store_feedbackscore = store_property[0].get('feedbackscore')
+                store_sellerpositivefeedbackpercentage = store_property[0].get('sellerpositivefeedbackpercentage')
+            except:
+                store_feedbackscore = 'none'
+                store_sellerpositivefeedbackpercentage = 'none'
+                
+            self.results = self.results.append(pd.DataFrame({'count':[i],\
+                                                             'elem_title':[elem_title],\
+                                                             'elem_price':[elem_price],\
+                                                             'elem_order':[elem_order],\
+                                                             'elem_feedback':[elem_feedback],\
+                                                             'elem_star':[elem_star],\
+                                                             'elem_store':[elem_store],\
+                                                             'store_feedbackscore':[store_feedbackscore],\
+                                                             'store_sellerpositivefeedbackpercentage':[store_sellerpositivefeedbackpercentage]}))
+        return 'success'
+        
+    def get_item_sub2(self):
+        response = self.driver.page_source
+        soup = BeautifulSoup(response, "html.parser")
+
+        elems = soup.find_all('ul',id='list-items')
+        
+        if len(elems) == 0:
+            return 'no items'
+        
+        elems = elems[0].find_all('li')
+        
+        if len(elems) == 0:
+            return 'no items'
+        
+        for i in range(len(elems)):
+            elem_detail = elems[i].find_all('div',class_='detail')
+            elem_info   = elems[i].find_all('div',class_='info infoprice')
+            elem_title = elem_detail[0].find_all('h3')
+            elem_title = elem_title[0].find_all('a')
+            
+            elem_price    = elem_info[0].find_all('span',class_='value')
+            elem_order    = elems[0].find_all('em',title='Total Orders')
+            elem_star     = elem_info[0].find_all('span',class_='star star-s')
+            elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
+
+            elem_infomore = elems[i].find_all('div',class_='info-more')
+            elem_store    = elem_detail[0].find_all(name='a', attrs={'class':re.compile(r"(store|store j-p4plog)")})
+
+            store_property = elem_detail[0].find_all('img',class_='score-icon')
+            
+            elem_title = elem_title[0].text
+            
+            try:
+                elem_price = elem_price[0].text
+            except:
+                elem_price = 'none'
+            
+            try:
+                elem_order = elem_order[0].text
+            except:
+                elem_order = 'none'
+
+            try:
+                elem_star = elem_star[0].get('title')
+            except:
+                elem_star = 'none'
+
+            try:
+                elem_feedback = elem_feedback[0].text
+            except:
+                elem_feedback = '(0)'
+
+            try:
+                elem_store = elem_store[0].get('title')
+            except:
+                elem_store = 'none'
+
+            try:
+                store_feedbackscore = store_property[0].get('feedbackscore')
+                store_sellerpositivefeedbackpercentage = store_property[0].get('sellerpositivefeedbackpercentage')
+            except:
+                store_feedbackscore = 'none'
+                store_sellerpositivefeedbackpercentage = 'none'
+                
+            self.results = self.results.append(pd.DataFrame({'count':[i],\
+                                                             'elem_title':[elem_title],\
+                                                             'elem_price':[elem_price],\
+                                                             'elem_order':[elem_order],\
+                                                             'elem_feedback':[elem_feedback],\
+                                                             'elem_star':[elem_star],\
+                                                             'elem_store':[elem_store],\
+                                                             'store_feedbackscore':[store_feedbackscore],\
+                                                             'store_sellerpositivefeedbackpercentage':[store_sellerpositivefeedbackpercentage]}))
+            return 'success'
+        
     def next_page(self):
         elems = self.driver.find_elements_by_xpath('//div[@class="ui-pagination-navi util-left"]/a[@class = "page-next ui-pagination-next"]')
         elems[0].click()
-        time.sleep(1)
+        time.sleep(0.5)
 
         js="var q=document.body.scrollTop=100000"
         self.driver.execute_script(js)
-        time.sleep(1)
-        js="var q=document.body.scrollTop=10000"
-        self.driver.execute_script(js)
+        time.sleep(0.5)
+##        js="var q=document.body.scrollTop=10000"
+##        self.driver.execute_script(js)
 
     def driver_quit(self):
         self.driver.quit()
 
-    def open_mode_sel(self,target,proxy_ip,url):
+    def open_mode_sel(self,target,proxy_ip,webdrv,url):
         if url == '':
-            self.open_web(proxy_ip)
+            self.open_web(proxy_ip,webdrv)
             self.search_item(target)
             js="var q=document.body.scrollTop=100000"
             self.driver.execute_script(js)
-            time.sleep(1)
+            time.sleep(0.5)
         else:
-            self.open_web(proxy_ip,url)
+            self.open_web(proxy_ip,webdrv,url)
             js="var q=document.body.scrollTop=100000"
             self.driver.execute_script(js)
-            time.sleep(1)
+            time.sleep(0.5)
 
     def save_xlsx(self,target):
         writer = pd.ExcelWriter(target+'.xlsx', engine='xlsxwriter')
@@ -288,31 +344,48 @@ class spider_aliexp():
         # Close the Pandas Excel writer and output the Excel file.
         writer.save()
 
-    def process(self,target,proxy_ip,target_num,url):
-        self.open_mode_sel(target,proxy_ip,url)
-        self.get_results_count()
+    def process(self,target,proxy_ip,webdrv,target_num,url):
+        self.open_mode_sel(target,proxy_ip,webdrv,url)
+        search_count = self.get_search_count()
+        
+        print 'search_count:',search_count
+        
         page_num = self.get_page_num()
+
+        print 'page_max:',page_num
+        
         if target_num > page_num:
             target_num = page_num
 
+        print target_num
+        
         for i in range(target_num):
             print i
-            self.get_item()
-            # self.next_page()
-            [a,b] = divmod(i,10)
-            if a != 0 and b == 0:
-                self.save_xlsx(target)
-                self.driver_quit()
-                self.open_mode_sel(target,proxy_ip,url)
-                print 'backup:',i
-            self.go_page(i+2)
+            state = self.get_item()
+            if state == 'no items':
+                break
+            elif state == 'error':
+                break
+            
+##            [a,b] = divmod(i,10)
+##            if a != 0 and b == 0:
+##                self.save_xlsx(target)
+##                self.driver_quit()    ## for phantomjs test, if use chrome, driver must quit every 10 page
+##                self.open_mode_sel(target,proxy_ip,url)
+##                print 'backup:',i
+            
+            if len(self.results) >= search_count:
+                break
+            if i < (target_num - 1):
+                self.next_page()            
+##                self.go_page(i+2)  ## phantomjd cann't use send key
+        
         self.driver_quit()
         self.results.to_csv(target+'.csv',encoding='utf-8')
         self.save_xlsx(target)
 
-        print self.results
+##        print self.results
         print 'results number :',len(self.results)
-        print page_num
         print 'finish'
 
 class spider_amz():
@@ -430,7 +503,6 @@ class spider_amz():
         for i in range(target_num):
             print i
             self.get_item()
-
             self.next_page()
 
 
