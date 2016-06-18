@@ -54,7 +54,7 @@ class agent:
     def verify_proxy(self,target,ip_addrs,mark,fail_time):
         if target == 'ali':
             # url = 'https://www.aliexpress.com'
-            url = 'http://www.aliexpress.com/wholesale?catId=0&initiative_id=SB_20160609001525&SearchText=Shirts'
+            url = 'http://www.aliexpress.com/category/5090301/mobile-phones.html?pvId=200001044-200658763'
             fail_words = '400 Bad Request'
         elif target == 'amz':
             url = 'https://www.amazon.com/'

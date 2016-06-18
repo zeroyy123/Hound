@@ -2,14 +2,15 @@
 import agent as ag
 import pandas as pd
 import spider_class as sp
-
+import threading
+import time
 
 
 
 
 
 def get_item_count():
-    index_table = pd.read_csv('ali_cate_list.csv')
+    index_table = pd.read_csv('data/ali_cate_list.csv')
     print 'table length : ',len(index_table)
 
     if target_web == 'ali':
@@ -41,15 +42,35 @@ def get_item_count():
     index_table.to_excel(writer, sheet_name='Sheet1')
     writer.save()
 
-def get_item_detail(target_web,proxy_ip,webdrv):
-    index_table = pd.read_csv('ali_cate_list.csv')
+def get_item_detail(target_web,proxy_ip,webdrv,target_sel,target_num):
+    index_table = pd.read_csv('data/ali_cate_list.csv')
     L = len(index_table)
-    target_num = 1000
+
     print 'table length : ',L
 
-    for i in range(69,L,1):  # have bug
-        print 'title_num:',i
-        n = i
+    if target_web == 'ali':
+            sp1 = sp.spider_aliexp()
+    elif target_web == 'amz':
+        sp1 = sp.spider_amz()
+
+
+    if target_sel == '':
+        for i in range(70,L,1):
+            print 'title_num:',i
+            n = i
+            category = index_table['category'].values[n]
+            sub_cate = index_table['sub_cate'].values[n]
+            item = index_table['item'].values[n]
+
+            target = category + '_' + sub_cate + '_' + item
+            target = target.replace("’","")
+            target_url = index_table['url'].values[n]
+            print target
+            print target_url
+
+            sp1.process(target=target,proxy_ip=proxy_ip,webdrv = webdrv,target_num=target_num,url=target_url)
+    else:
+        n = target_sel
         category = index_table['category'].values[n]
         sub_cate = index_table['sub_cate'].values[n]
         item = index_table['item'].values[n]
@@ -60,40 +81,66 @@ def get_item_detail(target_web,proxy_ip,webdrv):
         print target
         print target_url
 
-        if target_web == 'ali':
-            sp1 = sp.spider_aliexp()
-        elif target_web == 'amz':
-            sp1 = sp.spider_amz()
-
         sp1.process(target=target,proxy_ip=proxy_ip,webdrv = webdrv,target_num=target_num,url=target_url)
 
-def get_proxy(target_web):
-    Ag = ag.agent()
-    Ag.mult_verify(target_web,10,2)
 
-    proxy_ip = pd.read_csv(target_web+'_proxy_ip.csv')
-    proxy_ip = (proxy_ip['ip_addr'].values)[0]
-##    proxy_ip = '175.25.25.134:8118'
-##    proxy_ip = ''
+def get_proxy(target_web,proxy_sel):
+    if proxy_sel == 'disable':
+        proxy_ip = ''
+    elif proxy_sel == 'reflash':
+        Ag = ag.agent()
+        Ag.mult_verify(target_web,10,2)
+        proxy_ip = pd.read_csv(target_web+'_proxy_ip.csv')
+        proxy_ip = (proxy_ip['ip_addr'].values)[0]
+    else:
+        proxy_ip = pd.read_csv(target_web+'_proxy_ip.csv')
+        proxy_ip = (proxy_ip['ip_addr'].values)[proxy_sel]
+
     print proxy_ip
     return proxy_ip
 
-if __name__ == '__main__':
-    
-    target_web = 'ali'
-##  proxy_ip = get_proxy(target_web)
-    proxy_ip = ''
+def sub_thread(target_web,proxy_sel,webdrv,target_sel,target_num):
+    proxy_ip = get_proxy(target_web=target_web,proxy_sel=proxy_sel)
+    get_item_detail(target_web=target_web,proxy_ip=proxy_ip,webdrv=webdrv,target_sel=target_sel,target_num=target_num)
+
+def mult_thread(thread_num,start_num,proxy_enable,target_num = ''):
     webdrv   = 'PhantomJS'
-    get_item_detail(target_web,proxy_ip,webdrv)
-    
-##    index_table = pd.read_csv('ali_cate_list.csv')
-##    count = index_table['item_count'].values
-##    sum_count = 0
-##    for i in range(len(count)):
-##        if count[i] != 'none':
-##            count[i] = count[i].replace(',','')
-##            sum_count = sum_count + int(count[i])
-##        
-##    print sum_count
-##    print (13*sum_count/4500)/60
-    
+    target_web = 'ali'
+    thrs = []
+
+    if target_num == '':
+        target_num = 1000
+
+    print 'page_target_num: ',target_num
+
+    for i in range(thread_num):
+        if proxy_enable == 0:
+            proxy_sel = 'disable'
+        else:
+            proxy_sel = i
+
+        target_sel = start_num + i
+        t = threading.Thread(target = sub_thread, args = (target_web,proxy_sel,webdrv,target_sel,target_num))
+        thrs.append(t)
+
+    for t in thrs:
+        time.sleep(1)
+        t.setDaemon(True) #保护进程不要在主进程结束后 也被结束
+        t.start()
+
+    for t in thrs:
+        t.join()
+
+if __name__ == '__main__':
+    thread_num = 10
+    mult_thread(thread_num=thread_num,start_num=70, proxy_enable=1,target_num=2)
+
+#     target_web = 'ali'
+#     webdrv   = 'PhantomJS'
+# #     webdrv = ''
+#     proxy_mode = 0
+#     proxy_ip = get_proxy(target_web,mode=proxy_mode)
+#
+#     get_item_detail(target_web,proxy_ip,webdrv)
+#
+

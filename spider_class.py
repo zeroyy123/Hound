@@ -21,7 +21,11 @@ class spider_aliexp():
         PROXY = proxy_ip # IP:PORT or HOST:PORT
         
         if webdrv == 'PhantomJS':
-            self.driver = webdriver.PhantomJS()
+            service_args = [
+                                '--proxy='+proxy_ip ,
+                                '--proxy-type=http',
+                            ]
+            self.driver = webdriver.PhantomJS(service_args=service_args)
         else:
             chrome_options = webdriver.ChromeOptions()
             chrome_options.add_argument("user-data-dir="+ os.path.abspath(r"C:\Users\yy\AppData\Local\Google\Chrome\User Data"))
@@ -29,11 +33,8 @@ class spider_aliexp():
                 chrome_options.add_argument('--proxy-server=http://'+PROXY)
             self.driver = webdriver.Chrome(chrome_options=chrome_options)
         
-##        service_args = [
-##         '--proxy=127.0.0.1:9999',
-##         '--proxy-type=socks5',
-##         ]
-##        self.driver = webdriver.PhantomJS(service_args=service_args)
+
+
 
         
     def open_web_url(self,url):
@@ -99,7 +100,7 @@ class spider_aliexp():
     def get_search_count(self):
         elems = self.driver.find_elements_by_xpath('//div[@class="search-result"]//strong[@class="search-count"]')
         try:
-            result = int(elems[0].text)
+            result = elems[0].text
         except:
             result = 'none'
         return result
@@ -308,7 +309,7 @@ class spider_aliexp():
                                                              'elem_store':[elem_store],\
                                                              'store_feedbackscore':[store_feedbackscore],\
                                                              'store_sellerpositivefeedbackpercentage':[store_sellerpositivefeedbackpercentage]}))
-            return 'success'
+        return 'success'
         
     def next_page(self):
         elems = self.driver.find_elements_by_xpath('//div[@class="ui-pagination-navi util-left"]/a[@class = "page-next ui-pagination-next"]')
@@ -338,7 +339,7 @@ class spider_aliexp():
             time.sleep(0.5)
 
     def save_xlsx(self,target):
-        writer = pd.ExcelWriter(target+'.xlsx', engine='xlsxwriter')
+        writer = pd.ExcelWriter('data/' + target+'.xlsx', engine='xlsxwriter')
         # Convert the dataframe to an XlsxWriter Excel object.
         self.results.to_excel(writer, sheet_name='Sheet1')
         # Close the Pandas Excel writer and output the Excel file.
@@ -360,7 +361,7 @@ class spider_aliexp():
         print target_num
         
         for i in range(target_num):
-            print i
+            print target,': ',i
             state = self.get_item()
             if state == 'no items':
                 break
@@ -381,7 +382,7 @@ class spider_aliexp():
 ##                self.go_page(i+2)  ## phantomjd cann't use send key
         
         self.driver_quit()
-        self.results.to_csv(target+'.csv',encoding='utf-8')
+        self.results.to_csv('data/'+target+'.csv',encoding='utf-8')
         self.save_xlsx(target)
 
 ##        print self.results
