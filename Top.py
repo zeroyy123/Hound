@@ -1,22 +1,15 @@
 # -*- coding:utf-8 -*-
 import agent as ag
 import pandas as pd
-import spider_class as sp
+import spider_class_ali as sp
 import threading
 import time
 
 
-
-
-
-def get_item_count():
+def get_item_count(proxy_ip):
     index_table = pd.read_csv('data/ali_cate_list.csv')
     print 'table length : ',len(index_table)
-
-    if target_web == 'ali':
-        sp1 = sp.spider_aliexp()
-    elif target_web == 'amz':
-        sp1 = sp.spider_amz()
+    sp1 = sp.spider_aliexp()
 
     result_count = []
     sp1.open_web_driver(proxy_ip)
@@ -83,7 +76,6 @@ def get_item_detail(target_web,proxy_ip,webdrv,target_sel,target_num):
 
         sp1.process(target=target,proxy_ip=proxy_ip,webdrv = webdrv,target_num=target_num,url=target_url)
 
-
 def get_proxy(target_web,proxy_sel):
     if proxy_sel == 'disable':
         proxy_ip = ''
@@ -132,15 +124,7 @@ def mult_thread(thread_num,start_num,proxy_enable,target_num = ''):
         t.join()
 
 if __name__ == '__main__':
-    thread_num = 10
-    mult_thread(thread_num=thread_num,start_num=70, proxy_enable=1,target_num=2)
+    thread_num = 1
+    mult_thread(thread_num=thread_num,start_num=70, proxy_enable=0,target_num=2)
 
-#     target_web = 'ali'
-#     webdrv   = 'PhantomJS'
-# #     webdrv = ''
-#     proxy_mode = 0
-#     proxy_ip = get_proxy(target_web,mode=proxy_mode)
-#
-#     get_item_detail(target_web,proxy_ip,webdrv)
-#
 
