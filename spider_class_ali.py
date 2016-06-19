@@ -69,6 +69,7 @@ class spider_aliexp(spc.spider):
 
     def get_search_count(self):
         elems = self.driver.find_elements_by_xpath('//div[@class="search-result"]//strong[@class="search-count"]')
+        print self.driver.title
         try:
             result = elems[0].text
         except:

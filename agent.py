@@ -7,6 +7,7 @@ import time
 from bs4 import BeautifulSoup
 import datetime
 import pandas as pd
+from selenium import webdriver
 
 class agent:
     def __init__(self):
@@ -28,6 +29,7 @@ class agent:
         ##for page in range(1, 160):
         results = []
         for n in range(num):
+            # url = 'http://www.xicidaili.com/nt/' + str(n+1)
             url = 'http://www.xicidaili.com/nn/' + str(n+1)
             # url = 'http://www.xicidaili.com/wn/' + str(n+1)
             request = urllib2.Request(url,headers = self.headers)
@@ -72,22 +74,38 @@ class agent:
         if mark == 1:
             print 'target url:',url
 
-        request = urllib2.Request(url,headers = self.headers)
+        # urllib2 mode
+        # request = urllib2.Request(url,headers = self.headers)
 
         fail_count = 0
-        for ip_addr in ip_addrs:
+        for i in range(len(ip_addrs)):
+            ip_addr = ip_addrs[i]
             temp = ip_addr[0]+':'+ip_addr[1]
-            request.set_proxy(ip_addr[0]+':'+ip_addr[1],'http')
+            print mark,': ',i,' ',temp
+
+            # urllib2 mode
+            # request.set_proxy(ip_addr[0]+':'+ip_addr[1],'http')
+            service_args = [
+                                '--proxy='+temp,
+                                '--proxy-type=http',
+                            ]
             try:
+                driver = webdriver.PhantomJS(service_args=service_args,desired_capabilities={'phantomjs.page.settings.resourceTimeout': '1000'})
                 start_time = datetime.datetime.now()
-                pageCode = urllib2.urlopen(request,timeout=fail_time)
+                driver.get(url)
+                response = driver.page_source
+
+                # urllib2 mode
+                # response = urllib2.urlopen(request,timeout=fail_time)
+
                 end_time = datetime.datetime.now()
                 total_ms = (end_time - start_time).seconds * 1000 + (end_time - start_time).microseconds/1000
 
-                tempPage = BeautifulSoup(pageCode,"lxml")
+                tempPage = BeautifulSoup(response, "html.parser")
+                # tempPage = BeautifulSoup(pageCode,"lxml")
                 tempPage = tempPage.find_all('title')
 
-                if tempPage[0].text != fail_words:
+                if tempPage[0].text == 'Mobile Phones Directory of Mobile Phones, Phones &amp; Telecommunications and more on Aliexpress.com':
                     acq_flag = 1
                 else:
                     acq_flag = 0
@@ -98,32 +116,46 @@ class agent:
             except:
                 acq_flag = 0
                 fail_count = fail_count + 1
+            try:
+                driver.quit()
+            except:
+                print 'Thread ',mark,'driver quit unsuccess'
 
             if acq_flag == 1:
-                print 'check again'
-                try:
-                    start_time = datetime.datetime.now()
-                    pageCode = urllib2.urlopen(request,timeout=fail_time)
-                    end_time = datetime.datetime.now()
-
-                    total_ms = total_ms + (end_time - start_time).seconds * 1000 + (end_time - start_time).microseconds/1000
-                    total_ms = total_ms/2
-
-                    tempPage = BeautifulSoup(pageCode,"lxml")
-                    tempPage = tempPage.find_all('title')
-
-                    if self.mutex.acquire(1):
+                if self.mutex.acquire(1):
                         self.results.append([temp,total_ms])
                         self.mutex.release()
-                    else:
-                        print 'Thread ',mark,'lock request fail'
+                else:
+                    print 'Thread ',mark,'lock request fail'
 
-                    print temp + ' speed: ' + str(total_ms)
-                    print tempPage[0].text
-                    print 'Thread ',mark,'acquired'
-                except:
-                    print 'fail'
+                print temp + ' speed: ' + str(total_ms)
+                print tempPage[0].text
+                print 'Thread ',mark,'acquired'
 
+                # urllib2 mode
+                # print 'check again'
+                # try:
+                #     start_time = datetime.datetime.now()
+                #     pageCode = urllib2.urlopen(request,timeout=fail_time)
+                #     end_time = datetime.datetime.now()
+                #
+                #     total_ms = total_ms + (end_time - start_time).seconds * 1000 + (end_time - start_time).microseconds/1000
+                #     total_ms = total_ms/2
+                #
+                #     tempPage = BeautifulSoup(pageCode,"lxml")
+                #     tempPage = tempPage.find_all('title')
+                #
+                #     if self.mutex.acquire(1):
+                #         self.results.append([temp,total_ms])
+                #         self.mutex.release()
+                #     else:
+                #         print 'Thread ',mark,'lock request fail'
+                #
+                #     print temp + ' speed: ' + str(total_ms)
+                #     print tempPage[0].text
+                #     print 'Thread ',mark,'acquired'
+                # except:
+                #     print 'fail'
 
         print mark,' proxy fail ',fail_count
 
