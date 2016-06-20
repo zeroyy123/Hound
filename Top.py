@@ -78,7 +78,7 @@ def get_proxy(target_web,proxy_sel):
         proxy_ip = ''
     elif proxy_sel == 'reflash':
         Ag = ag.agent()
-        Ag.mult_verify(target_web,10,2)
+        Ag.mult_verify(target_web,3,2)
         proxy_ip = pd.read_csv(target_web+'_proxy_ip.csv')
         proxy_ip = (proxy_ip['ip_addr'].values)[0]
     else:
@@ -123,10 +123,14 @@ if __name__ == '__main__':
     thread_num = 5
     # webdrv=''
     # proxy_ip = get_proxy(target_web='ali',proxy_sel=1)
-    proxy_ip = '123.126.32.102:8080'
-    get_item_detail(proxy_ip=proxy_ip,webdrv='PhantomJS',target_page_sel=71,target_num=10)
+    # proxy_ip = '123.126.32.102:8080'
+    proxy_ip = ''
+    for i in range(100):
+        target_page_sel = 71+i
+        print target_page_sel
+        get_item_detail(proxy_ip=proxy_ip,webdrv='PhantomJS',target_page_sel=target_page_sel,target_num=1000)
 
     # get_proxy(target_web = 'ali',proxy_sel='reflash')
-    # mult_thread(thread_num=thread_num,start_page=70, proxy_enable=1,target_num=1)
+    # mult_thread(thread_num=thread_num,start_page=70, proxy_enable=1,target_num=1000)
 
 

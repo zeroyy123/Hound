@@ -20,6 +20,8 @@ class spider():
             service_args = [
                                 '--proxy='+proxy_ip ,
                                 '--proxy-type=http',
+                                '--load-images=no',
+                                # '--disk-cache=yes',
                             ]
             self.driver = webdriver.PhantomJS(service_args=service_args)
         else:
@@ -106,10 +108,21 @@ class spider():
             elif state == 'error':
                 break
 
+            if i%50 == 49:
+                print 'web driver restart'
+                curr_url = self.driver.current_url
+                print curr_url
+                self.driver_quit()
+                self.open_mode_sel(target,proxy_ip,webdrv,curr_url)
+
             if len(self.results) >= search_count:
                 break
             if i < (target_num - 1):
-                self.next_page()            
+                try:
+                    self.next_page()
+                except:
+                    print 'click next page fail'
+                    break
 ##                self.go_page(i+2)  ## phantomjs cann't use send key
         
         self.driver_quit()

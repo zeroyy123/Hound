@@ -88,9 +88,12 @@ class agent:
             service_args = [
                                 '--proxy='+temp,
                                 '--proxy-type=http',
+                                '--load-images=no',
+                                '--disk-cache=yes',
                             ]
             try:
                 driver = webdriver.PhantomJS(service_args=service_args,desired_capabilities={'phantomjs.page.settings.resourceTimeout': '1000'})
+                driver.set_page_load_timeout(10)
                 start_time = datetime.datetime.now()
                 driver.get(url)
                 response = driver.page_source
