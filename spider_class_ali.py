@@ -8,6 +8,7 @@ import time
 import pandas as pd
 import re
 import spider_class as spc
+import numpy as np
 
 class spider_aliexp(spc.spider):
 
@@ -291,3 +292,118 @@ class spider_aliexp(spc.spider):
         self.driver.execute_script(js)
         time.sleep(0.5)
 
+    def data_reduction(self):
+        index_table = pd.read_csv('data/ali_cate_list.csv')
+        L = len(index_table)
+        df = pd.DataFrame({})
+        category = ''
+        for n in range(L):
+            Last_category = category
+            category = index_table['category'].values[n]
+            category = category.replace("’","'")
+            sub_cate = index_table['sub_cate'].values[n]
+            sub_cate = sub_cate.replace("’","'")
+            item = index_table['item'].values[n]
+            item = item.replace("’","'")
+            
+            target = category + '_' + sub_cate + '_' + item
+            target = target.replace("'","")
+            try:
+                data = pd.read_csv(target+'.csv')
+                del data['Unnamed: 0']
+                L_1 = len(data)
+                print target,L_1
+
+                data['sub_cate'] = sub_cate
+                data['item']     = item
+                
+                elem_feedback        = data['elem_feedback'].values
+                elem_order           = data['elem_order'].values
+                elem_price           = data['elem_price'].values
+                elem_price_low       = elem_price.copy()  # shallow copy ,(deepcopy() for deep copy)
+                elem_price_high      = elem_price.copy()
+                elem_star            = data['elem_star'].values
+                store_feedbackscore  = data['store_feedbackscore'].values
+                store_sellerpositivefeedbackpercentage = data['store_sellerpositivefeedbackpercentage'].values
+            
+                for i in range(L_1):
+                    if elem_feedback[i]=='none':
+                        elem_feedback[i] = np.nan
+                    else:
+                        elem_feedback[i] = elem_feedback[i].replace('(','')
+                        elem_feedback[i] = int(elem_feedback[i].replace(')',''))
+                        
+                    if elem_order[i]=='none':
+                        elem_order[i] = np.nan
+                    else:
+                        elem_order[i] = elem_order[i].replace('Orders (','')
+                        elem_order[i] = elem_order[i].replace('Order (','')
+                        elem_order[i] = int(elem_order[i].replace(')',''))
+
+                    if elem_price[i]=='none':
+                        elem_price_low[i] = np.nan
+                        elem_price_high[i] = np.nan
+                    else:
+                        elem_price[i] = elem_price[i].replace('US $','')
+                        elem_price[i] = elem_price[i].replace(',','')
+                        if elem_price[i].find(' - ') == -1:
+                            elem_price_low[i]  = float(elem_price[i])
+                            elem_price_high[i] = float(elem_price[i])
+                        else:
+                            elem_price_temp = elem_price[i].split(' - ')
+                            elem_price_low[i]  = float(elem_price_temp[0])
+                            elem_price_high[i] = float(elem_price_temp[1])
+
+                            
+                    if elem_star[i]=='none':
+                        elem_star[i] = np.nan
+                    else:
+                        elem_star[i] = elem_star[i].replace('Star Rating: ','')
+                        elem_star[i] = float(elem_star[i].replace(' out of 5',''))
+                        
+                    if store_feedbackscore[i]=='none':
+                        store_feedbackscore[i] = np.nan
+                    else:
+                        store_feedbackscore[i] = store_feedbackscore[i].replace(',','')
+                        store_feedbackscore[i] = int(store_feedbackscore[i])
+                        
+                    if store_sellerpositivefeedbackpercentage[i]=='none':
+                        store_sellerpositivefeedbackpercentage[i] = np.nan
+                    else:
+                        store_sellerpositivefeedbackpercentage[i] = float(store_sellerpositivefeedbackpercentage[i])
+        
+                data['elem_feedback']           = elem_feedback
+                data['elem_order']              = elem_order
+                data['elem_price_low_Dollar']   = elem_price_low
+                data['elem_price_high_Dollar']  = elem_price_high
+                data['elem_star']               = elem_star
+                data['store_feedbackscore']     = store_feedbackscore
+                data['store_sellerpositivefeedbackpercentage'] = store_sellerpositivefeedbackpercentage
+                data['page_count']              = data['count']
+                data['item_count']              = range(L_1)
+                del data['count']
+                del data['elem_price']
+
+##                print data.head(5)
+            except:
+                print target,' no data'
+                data = pd.DataFrame({})
+
+            if n == 0:
+                df = data
+            elif (category != Last_category):
+                print 'save '+Last_category
+                print len(df)
+                writer = pd.ExcelWriter('data/' + Last_category+'.xlsx', engine='xlsxwriter')
+                df.to_excel(writer, sheet_name='Sheet1')
+                writer.save()
+                df = data
+            elif n == L-1:
+                df = df.append(data)
+                writer = pd.ExcelWriter('data/' + Last_category+'.xlsx', engine='xlsxwriter')
+                df.to_excel(writer, sheet_name='Sheet1')
+                writer.save()
+            else:
+                df = df.append(data)
+                
+        print 'finish'

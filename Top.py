@@ -124,13 +124,14 @@ if __name__ == '__main__':
     # webdrv=''
     # proxy_ip = get_proxy(target_web='ali',proxy_sel=1)
     # proxy_ip = '123.126.32.102:8080'
-    proxy_ip = ''
-    for i in range(100):
-        target_page_sel = 71+i
-        print target_page_sel
-        get_item_detail(proxy_ip=proxy_ip,webdrv='PhantomJS',target_page_sel=target_page_sel,target_num=1000)
+##    proxy_ip = ''
+##    for i in range(100):
+##        target_page_sel = 71+i
+##        print target_page_sel
+##        get_item_detail(proxy_ip=proxy_ip,webdrv='PhantomJS',target_page_sel=target_page_sel,target_num=1000)
 
     # get_proxy(target_web = 'ali',proxy_sel='reflash')
     # mult_thread(thread_num=thread_num,start_page=70, proxy_enable=1,target_num=1000)
-
+    sp1 = sp.spider_aliexp()
+    sp1.data_reduction()
 
