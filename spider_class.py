@@ -108,7 +108,7 @@ class spider():
             elif state == 'error':
                 break
 
-            if i%50 == 49:
+            if i%10 == 9:
                 print 'web driver restart'
                 curr_url = self.driver.current_url
                 print curr_url
