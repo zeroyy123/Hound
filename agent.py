@@ -189,9 +189,46 @@ class agent:
         print 'total results:',len(self.results)
         print 'finish'
         
+    def proxy_speed_test(self,proxy_ip,url='',time_out = 10):
+        service_args = [
+                                '--proxy='+proxy_ip,
+                                '--proxy-type=http',
+                                '--load-images=no',
+                            ]
+
+        if url == '':
+            url = 'http://www.aliexpress.com/category/5090301/mobile-phones.html?pvId=200001044-200658763'
+
+        driver = webdriver.PhantomJS(service_args=service_args,desired_capabilities={'phantomjs.page.settings.resourceTimeout': '1000'})
+        driver.set_page_load_timeout(time_out)
+        times = 10
+        total_delay = 0
+        success_times = 0
+        for i in range(times):
+            try:
+                start_time = datetime.datetime.now()
+                driver.get(url)
+                end_time = datetime.datetime.now()
+                delay_ms = (end_time - start_time).seconds * 1000 + (end_time - start_time).microseconds/1000
+                total_delay = total_delay + delay_ms
+                success_times = success_times + 1
+                print proxy_ip,' ',delay_ms,' ',i+1,'/',times
+            except:
+                print proxy_ip,' ','time out',' ',i+1,'/',times
+
+        if success_times == 0:
+            print proxy_ip,' fail'
+        else:
+            print proxy_ip,' avg delay:',total_delay/success_times,' ',success_times,'/',times
 
 
-##Ag = agent()
+
+
+
+# Ag = agent()
+# proxy_ip = '123.126.32.102:8080'
+# Ag.proxy_speed_test(proxy_ip = proxy_ip)
+
 ##Ag.mult_verify(2)
 
 ##results = Ag.get_proxy(1)

@@ -15,7 +15,8 @@ class spider():
 
     def open_web_driver(self,proxy_ip='',webdrv=''):
         PROXY = proxy_ip # IP:PORT or HOST:PORT
-
+        if proxy_ip == 'null':
+            proxy_ip = ''
         if webdrv == 'PhantomJS':
             service_args = [
                                 '--proxy='+proxy_ip ,
@@ -87,7 +88,7 @@ class spider():
         self.get_index()
         self.driver_quit()
 
-    def process(self,target,proxy_ip='',webdrv='',target_num=1000,url=''):  # if url == '', process will search target in the web as entrance
+    def process(self,target,proxy_ip='',webdrv='',page_max=1000,url=''):  # if url == '', process will search target in the web as entrance
         self.open_mode_sel(target,proxy_ip,webdrv,url)
 
         search_count = self.get_search_count()
@@ -96,11 +97,11 @@ class spider():
         page_num = self.get_page_num()
         print 'page_max:',page_num
         
-        if target_num > page_num:
-            target_num = page_num
-        print target_num
+        if page_max > page_num:
+            page_max = page_num
+        print page_max
         
-        for i in range(target_num):
+        for i in range(page_max):
             print target,': ',i
             state = self.get_item()
             if state == 'no items':
@@ -117,7 +118,7 @@ class spider():
 
             if len(self.results) >= search_count:
                 break
-            if i < (target_num - 1):
+            if i < (page_max - 1):
                 try:
                     self.next_page()
                 except:
