@@ -10,6 +10,43 @@ class AliSpider(scrapy.Spider):
     start_urls = [
         'http://www.aliexpress.com/category/200000707/tops-tees.html?spm=2114.11010108.102.3.azoeiz&g=y',
         # 'http://www.aliexpress.com/category/200001648/blouses-shirts.html?g=y'
+        'http://www.aliexpress.com/category/14191299/other-wiring-accessories.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14191209/wiring-ducts.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14190402/electrical-wires.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410605/push-button-switches.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/141909/relays.html',
+        'http://www.aliexpress.com/category/14191208/tie-mounts.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14190499/other-wires-cables-cable-assemblies.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/141907/transformers.html',
+        'http://www.aliexpress.com/category/14191102/inverters-converters.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410606/remote-control-switches.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14191203/cable-end-caps.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410401/alternative-energy-generators.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/540/fuses.html',
+        'http://www.aliexpress.com/category/4103/fuse-components.html',
+        'http://www.aliexpress.com/category/150512/electronic-instrument-enclosures.html',
+        'http://www.aliexpress.com/category/141905/electrical-plugs-sockets.html',
+        'http://www.aliexpress.com/category/14190409/power-cords-extension-cords.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14191101/ac-dc-adapters.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410612/wall-switches.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14191207/cable-trays.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410405/generator-parts-accessories.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14190404/cable-manufacturing-equipment.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/526/contactors.html',
+        'http://www.aliexpress.com/category/14190101/connectors.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14191104/switching-power-supply.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410607/rocker-switches.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410403/gasoline-generators.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14190410/wiring-harness.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14190103/terminals.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14191105/inductors.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410603/limit-switches.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/410402/diesel-generators.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14190408/power-cables.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14190199/other-connectors-terminals.html?site=glo&shipCountry=all',
+        'http://www.aliexpress.com/category/14191107/voltage-regulators-stabilizers.html?site=glo&shipCountry=all'
+
+
     ]
     page_counter = 0
     results = pd.DataFrame({})
