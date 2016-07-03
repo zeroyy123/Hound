@@ -1,9 +1,12 @@
 # -*- coding:utf-8 -*-
-import agent as ag
-import pandas as pd
-import spider_class_ali as sp
 import threading
 import time
+
+import pandas as pd
+
+import others.spider_class_ali as sp
+from others import agent as ag
+
 
 class Mult_thread():
     def __init__(self):
@@ -18,13 +21,9 @@ class Mult_thread():
                 state[i] = 'idle'
         index_table['state'] = state
         index_table.to_csv('data/ali_cate_list.csv')
-
+        print index_table.tail(5)
 
 ##        self.obj = obj
-        
-    def get_target_amount(self):
-        Length = len(index_table)
-        return Length
 
     def index_initial(self,num):
         index_table = pd.read_csv('data/ali_cate_list.csv')
@@ -63,7 +62,9 @@ class Mult_thread():
         return [target,target_url,index,'success']
     
     def set_finish_target(self,target_num):
+        print 'mark 2'
         if self.mutex.acquire(1):
+            print 'mark 3'
             index_table = pd.read_csv('data/ali_cate_list.csv')
             del index_table['Unnamed: 0']
             state = index_table['state'].values
@@ -71,9 +72,12 @@ class Mult_thread():
             index_table['state'] = state
             index_table.to_csv('data/ali_cate_list.csv')
             self.mutex.release()
+        else:
+            print 'mutex.acquire fail'
 
     def set_idle_target(self,target_num):
         if self.mutex.acquire(1):
+            print 'idle mark'
             index_table = pd.read_csv('data/ali_cate_list.csv')
             del index_table['Unnamed: 0']
             state = index_table['state'].values
@@ -91,6 +95,7 @@ class Mult_thread():
             sp1 = sp.spider_aliexp()
             try:
                 sp1.process(target=target,proxy_ip=proxy_ip,webdrv = webdrv,page_max=page_max,url=target_url)
+                print 'mark'
                 self.set_finish_target(index)
             except:
                 self.set_idle_target(index)

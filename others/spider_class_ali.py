@@ -307,9 +307,9 @@ class spider_aliexp(spc.spider):
             item = item.replace("’","'")
             
             target = category + '_' + sub_cate + '_' + item
-            target = target.replace("'","")
+            # target = target.replace("'","")
             try:
-                data = pd.read_csv(target+'.csv')
+                data = pd.read_csv('data/'+target+'.csv')
                 del data['Unnamed: 0']
                 L_1 = len(data)
                 print target,L_1
@@ -330,13 +330,16 @@ class spider_aliexp(spc.spider):
                     if elem_feedback[i]=='none':
                         elem_feedback[i] = np.nan
                     else:
+                        elem_feedback[i] = elem_feedback[i].replace('Feedback','')
                         elem_feedback[i] = elem_feedback[i].replace('(','')
                         elem_feedback[i] = int(elem_feedback[i].replace(')',''))
                         
                     if elem_order[i]=='none':
                         elem_order[i] = np.nan
                     else:
+                        elem_order[i] = elem_order[i].replace('Orders  (','')
                         elem_order[i] = elem_order[i].replace('Orders (','')
+                        elem_order[i] = elem_order[i].replace('Order  (','')
                         elem_order[i] = elem_order[i].replace('Order (','')
                         elem_order[i] = int(elem_order[i].replace(')',''))
 
@@ -385,9 +388,10 @@ class spider_aliexp(spc.spider):
                 del data['elem_price']
 
 ##                print data.head(5)
-            except:
+            except Exception as e:
                 print target,' no data'
                 data = pd.DataFrame({})
+                print("open exception: %s: %s\n" %(e.message, e.args))
 
             if n == 0:
                 df = data
