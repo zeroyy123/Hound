@@ -39,21 +39,31 @@ class AliListPipeline(object):
 class AliPipeline(object):
     def __init__(self):
         self.df = pd.DataFrame({})
+        self.createVar = locals()
 
     def process_item(self, item, spider):
         print '#############################################'
         print item['end_flag']
+        name = item['category'].replace(' ','')
+        name = name.replace("'",'')
+        name = name.replace('&','')
 
         if item['end_flag'] == 0:
-            temp = item['df']
-            temp = self.data_reduction(temp)
-            temp['category'] = item['category']
-            self.df = self.df.append(temp)
-        else:
-            print self.df
-            self.df.to_csv('data/test.csv')
-            self.saveExcel(self.df,'test')
+            try:
+                self.createVar[name] = self.createVar[name].append(item['df'])
+                print name
+                print len(self.createVar[name])
+            except Exception,e:
+                print Exception,":",e
+                self.createVar[name] = item['df']
+                print 'new:'+name
+        else :
+            print self.createVar[name]
+            self.createVar[name].to_csv('data/'+item['category']+'.csv')
+            self.saveExcel(self.createVar[name],name)
         return item
+
+
 
     def saveExcel(self,df,name):
         writer = pd.ExcelWriter('data/' + name+'.xlsx', engine='xlsxwriter')

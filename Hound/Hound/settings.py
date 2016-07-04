@@ -15,6 +15,7 @@ SPIDER_MODULES = ['Hound.spiders']
 NEWSPIDER_MODULE = 'Hound.spiders'
 
 REACTOR_THREADPOOL_MAXSIZE = 10
+# LOG_ENABLED = True
 LOG_ENABLED = False
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'doubanmoive (+http://www.yourdomain.com)'
@@ -65,10 +66,10 @@ COOKIES_ENABLED = False
 #DOWNLOADER_MIDDLEWARES = {
 #    'doubanmoive.middlewares.MyCustomDownloaderMiddleware': 543,
 #}
-DOWNLOADER_MIDDLEWARES = {
-    'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,
-    'Hound.middlewares.ProxyMiddleware': 100,
-}
+# DOWNLOADER_MIDDLEWARES = {
+#     'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,
+#     'Hound.middlewares.ProxyMiddleware': 100,
+# }
 
 
 # Enable or disable extensions
