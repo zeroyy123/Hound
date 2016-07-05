@@ -10,8 +10,7 @@ import scrapy
 
 class HoundItem(scrapy.Item):
     df = scrapy.Field()
-    category = scrapy.Field()
-    item_name = scrapy.Field()
+    name = scrapy.Field()
     end_flag = scrapy.Field()
 
 class AliListItem(scrapy.Item):

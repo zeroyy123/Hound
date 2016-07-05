@@ -15,8 +15,9 @@ SPIDER_MODULES = ['Hound.spiders']
 NEWSPIDER_MODULE = 'Hound.spiders'
 
 REACTOR_THREADPOOL_MAXSIZE = 10
-# LOG_ENABLED = True
-LOG_ENABLED = False
+LOG_ENABLED = True
+# LOG_ENABLED = False
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'doubanmoive (+http://www.yourdomain.com)'
 
@@ -50,10 +51,10 @@ COOKIES_ENABLED = False
 #TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-#   'Accept-Language': 'en',
-#}
+DEFAULT_REQUEST_HEADERS = {
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'Accept-Language': 'en',
+}
 
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
