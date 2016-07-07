@@ -17,6 +17,7 @@ class AliListItem(scrapy.Item):
     catepory     = scrapy.Field()
     son_catepory = scrapy.Field()
     gra_son_cate = scrapy.Field()
+    gg_son_cate  = scrapy.Field()
     search_count = scrapy.Field()
     item_url     = scrapy.Field()
 

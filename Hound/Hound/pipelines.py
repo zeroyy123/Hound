@@ -20,19 +20,21 @@ class AliListPipeline(object):
 
     def process_item(self, item, spider):
         self.count = self.count + 1
+        # print item
         print self.count
         temp = pd.DataFrame({'catepory':[item['catepory']],\
                              'son_catepory':[item['son_catepory']],\
                              'gra_son_cate':[item['gra_son_cate']],\
+                             'gg_son_cate':[item['gg_son_cate']],\
                              'search_count':[item['search_count']],\
                              'item_url':[item['item_url']] \
                              })
+        # print self.df
         self.df = self.df.append(temp)
-        if self.count == 1700:
-            print self.df
+        if self.count >= 3020:
+            print 'save :',self.count
             self.saveExcel(self.df,'item_list')
             self.df.to_csv('data/item_list.csv')
-            print self.df
         return item
 
 

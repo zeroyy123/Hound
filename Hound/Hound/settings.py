@@ -16,7 +16,7 @@ NEWSPIDER_MODULE = 'Hound.spiders'
 
 REACTOR_THREADPOOL_MAXSIZE = 10
 LOG_ENABLED = True
-# LOG_ENABLED = False
+LOG_ENABLED = False
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'doubanmoive (+http://www.yourdomain.com)'
@@ -82,7 +82,8 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'Hound.pipelines.AliPipeline': 300
+    # 'Hound.pipelines.AliPipeline': 300
+    'Hound.pipelines.AliListPipeline': 300
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
