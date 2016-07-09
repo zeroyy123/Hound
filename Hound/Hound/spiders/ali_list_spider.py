@@ -45,22 +45,20 @@ class AliSpider(scrapy.Spider):
             elems = elems[0].find_all('ul',class_='bc-list bc-ul bc-list-not-standard')
             # print 'grand index 1 :',len(elems)
             # print elems
-            elems = elems[0].find_all('li',class_='bc-cate-has-child')
+            elems = elems[0].find_all('li',class_='bc-cate-has-child')   ##maybe miss some item which have not child
             # print 'grand index :',len(elems)
             # for elem in elems:
             #     print elem
             for elem in elems:
                 gra_son_cate = (elem.find_all('a'))[0].text
                 # print gra_son_cate
-                elems = elem.find_all('li',class_='bc-nowrap-ellipsis')    ####### still need to debug
-                # print 'great grand son index ',len(elems)
                 sub_elems = elem.find_all('li')
                 for sub_elem in sub_elems:
                     print 'Great grand index'
                     print 'parent url:',response.url
                     item_url = 'http:' + sub_elem.find_all('a')[0].get('href')
                     item_name = sub_elem.find_all('a')[0].text
-                    print '###',item_name
+                    print '###gg_son_cate:',item_name
                     item = AliListItem()
                     item['catepory'] = catepory
                     item['son_catepory'] = son_catepory

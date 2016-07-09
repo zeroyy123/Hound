@@ -19,55 +19,40 @@ class AliSpider(scrapy.Spider):
         'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36 Core/1.47.640.400 QQBrowser/9.4.8309.400'
     }
 
-    start_urls = [
-        'http://www.aliexpress.com/category/410201/digital-battery.html?spm=2114.01010108.105.3.toVbOW',
-        # 'http://www.aliexpress.com/category/717/other-computer-products.html',
-        # 'http://www.aliexpress.com/category/200084019/wearable-devices.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14191206/cable-ties.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/100006194/pu-er-tea.html?site=glo&shipCountry=all',
-
-        # 'http://www.aliexpress.com/category/14191209/wiring-ducts.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14190402/electrical-wires.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410605/push-button-switches.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/141909/relays.html',
-        # 'http://www.aliexpress.com/category/14191208/tie-mounts.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14190499/other-wires-cables-cable-assemblies.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/141907/transformers.html',
-        # 'http://www.aliexpress.com/category/14191102/inverters-converters.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410606/remote-control-switches.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14191203/cable-end-caps.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410401/alternative-energy-generators.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/540/fuses.html',
-        # 'http://www.aliexpress.com/category/4103/fuse-components.html',
-        # 'http://www.aliexpress.com/category/150512/electronic-instrument-enclosures.html',
-        # 'http://www.aliexpress.com/category/141905/electrical-plugs-sockets.html',
-        # 'http://www.aliexpress.com/category/14190409/power-cords-extension-cords.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14191101/ac-dc-adapters.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410612/wall-switches.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14191207/cable-trays.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410405/generator-parts-accessories.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14190404/cable-manufacturing-equipment.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/526/contactors.html',
-        # 'http://www.aliexpress.com/category/14190101/connectors.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14191104/switching-power-supply.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410607/rocker-switches.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410403/gasoline-generators.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14190410/wiring-harness.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14190103/terminals.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14191105/inductors.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410603/limit-switches.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/410402/diesel-generators.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14190408/power-cables.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14190199/other-connectors-terminals.html?site=glo&shipCountry=all',
-        # 'http://www.aliexpress.com/category/14191107/voltage-regulators-stabilizers.html?site=glo&shipCountry=all'
-    ]
+    index_df = pd.read_csv('data/item_list.csv')
+    start_urls = (pd.read_csv('data/item_list.csv'))['item_url'].values[50:100]  #8:31start
+    print len(start_urls)
+    print start_urls
+    # start_urls = [
+    #     'http://www.aliexpress.com/category/200003673/daytime-running-lights.html?site=glo&g=y',
+    #     # 'http://www.aliexpress.com/category/717/other-computer-products.html',
+    #     # 'http://www.aliexpress.com/category/200084019/wearable-devices.html?site=glo&shipCountry=all',
+    #     # 'http://www.aliexpress.com/category/14191206/cable-ties.html?site=glo&shipCountry=all',
+    #     # 'http://www.aliexpress.com/category/100006194/pu-er-tea.html?site=glo&shipCountry=all',
+    # ]
 
 
-    def parse(self, response):
+    def parse(self, response,StartFlag = 1,name='',category='1',son_cate='1',grand_cate='1',gg_son_cate='1'):
         print '#########'
+        if StartFlag == 1:
+            print 'StartFlag == 1'
+            name =  self.index_df[self.index_df['item_url'] == response.url]
+            category = (name['catepory'].values)[0]
+            son_cate = (name['son_catepory'].values)[0]
+            grand_cate =  (name['gra_son_cate'].values)[0]
+            gg_son_cate = (name['gg_son_cate'].values)[0]
+            name = (name['catepory'].values)[0] + '_' + (name['son_catepory'].values)[0] + '_' + (name['gra_son_cate'].values)[0] + '_' + (name['gg_son_cate'].values)[0]
+            name = name.replace(' ','')
+            name = name.replace("'",'')
+            name = name.replace('&','')
+            print name
+            # print category,son_cate,grand_cate,gg_son_cate
+        # else:
+            # print name
+            # print category,son_cate,grand_cate,gg_son_cate
         try:
             soup                           = BeautifulSoup(response.body, "html.parser")
-            [category,son_cate,grand_cate] = self.get_relation(soup)
+            # [category,son_cate,grand_cate] = self.get_relation(soup)
             df                             = self.get_item(soup)
             next_url                       = self.getNextPage(soup)
             print   next_url
@@ -79,21 +64,21 @@ class AliSpider(scrapy.Spider):
         if next_url == 'none':
             item['end_flag'] = 1
         else:
+
             item['end_flag'] = 0
         try:
-            name = category + '_' + son_cate + '_' + grand_cate
-            name = name.replace(' ','')
-            name = name.replace("'",'')
-            name = name.replace('&','')
             item['name'] = name   ### no data rerurn in the cwarl end ,need to debug
             df['category'] = category
             df['son_cate'] = son_cate
             df['grand_cate'] = grand_cate
+            df['gg_son_cate'] = gg_son_cate
             item['df'] = df
         except Exception,e:
             print Exception,":",e
         yield item
-        yield scrapy.Request(next_url,headers=self.headers,callback=self.parse)
+        yield scrapy.Request(next_url,headers=self.headers,callback=lambda response,StartFlag=0,\
+                                name=name,category=category,son_cate=son_cate,grand_cate=grand_cate,gg_son_cate=gg_son_cate \
+                                :self.parse(response,StartFlag,name,category,son_cate,grand_cate,gg_son_cate))
 
     def getNextPage(self,soup):
         try:
@@ -112,10 +97,14 @@ class AliSpider(scrapy.Spider):
             category = a[0].text
             son_cate = (elems[0].find_all('span'))[1].text
             grand_cate = 'none'
-        else:
+        elif len(a) == 2:
             category = a[0].text
             son_cate = a[1].text
             grand_cate = (elems[0].find_all('span'))[2].text
+        else:
+            category = a[0].text
+            son_cate = a[1].text
+            grand_cate = a[2].text+'_'+(elems[0].find_all('span'))[3].text
         return category,son_cate,grand_cate
 
     def get_item(self,soup):
@@ -254,9 +243,9 @@ class AliSpider(scrapy.Spider):
 
             try:
                 elem_ship = elem_info[0].find_all('dd',class_='price')
-                print elem_ship                                                     ## need to debug  why all is freeshiping
+                # print elem_ship                                                     ## need to debug  why all is freeshiping
                 elem_ship = elem_info[0].find_all('strong')
-                print elem_ship
+                # print elem_ship
                 if len(elem_ship) != 0:
                     elem_ship = elem_ship[0].text
                 else:
