@@ -20,12 +20,17 @@ class AliSpider(scrapy.Spider):
     }
 
     index_df = pd.read_csv('data/item_list.csv')
-    start_urls = (pd.read_csv('data/item_list.csv'))['item_url'].values[50:100]  #8:31start
-    print len(start_urls)
-    print start_urls
+    def __init__(self, start=0,end=0, *args, **kwargs):
+        super(AliSpider, self).__init__(*args, **kwargs)
+        print start
+        print end
+        self.start_urls = (pd.read_csv('data/item_list.csv'))['item_url'].values[int(start):int(end)]  #8:31start
+
+    # print len(start_urls)
+    # print start_urls
     # start_urls = [
     #     'http://www.aliexpress.com/category/200003673/daytime-running-lights.html?site=glo&g=y',
-    #     # 'http://www.aliexpress.com/category/717/other-computer-products.html',
+    #     'http://www.aliexpress.com/category/200002624/tablet-pc-stands.html?site=glo&shipCountry=all',
     #     # 'http://www.aliexpress.com/category/200084019/wearable-devices.html?site=glo&shipCountry=all',
     #     # 'http://www.aliexpress.com/category/14191206/cable-ties.html?site=glo&shipCountry=all',
     #     # 'http://www.aliexpress.com/category/100006194/pu-er-tea.html?site=glo&shipCountry=all',
@@ -138,6 +143,7 @@ class AliSpider(scrapy.Spider):
             elem_title = elem_title[0].find_all('a')
 
             elem_price = elem_info[0].find_all('span',class_='value')
+            elem_original_price = elem_info[0].find_all('del',class_='original-price')
             elem_order = elem_info[0].find_all('em',title='Total Orders')
             elem_star     = elem_info[0].find_all('span',class_='star star-s')
             elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
@@ -171,6 +177,11 @@ class AliSpider(scrapy.Spider):
                 elem_price = 'none'
 
             try:
+                elem_original_price = elem_original_price[0].text
+            except:
+                elem_original_price = 'none'
+
+            try:
                 elem_order = elem_order[0].text
             except:
                 elem_order = 'none'
@@ -201,6 +212,7 @@ class AliSpider(scrapy.Spider):
                                                             'elem_ID':[elem_ID],\
                                                              'elem_title':[elem_title],\
                                                              'elem_price':[elem_price],\
+                                                             'elem_original_price':[elem_original_price],\
                                                              'elem_order':[elem_order],\
                                                              'elem_feedback':[elem_feedback],\
                                                              'elem_star':[elem_star],\
@@ -230,6 +242,7 @@ class AliSpider(scrapy.Spider):
             elem_title = elem_title[0].find_all('a')
 
             elem_price    = elem_info[0].find_all('span',class_='value')
+            elem_original_price = elem_info[0].find_all('del',class_='original-price')
             elem_order    = elems[0].find_all('em',title='Total Orders')
             elem_star     = elem_info[0].find_all('span',class_='star star-s')
             elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
@@ -265,6 +278,11 @@ class AliSpider(scrapy.Spider):
                 elem_price = 'none'
 
             try:
+                elem_original_price = elem_original_price[0].text
+            except:
+                elem_original_price = 'none'
+
+            try:
                 elem_order = elem_order[0].text
             except:
                 elem_order = 'none'
@@ -295,6 +313,7 @@ class AliSpider(scrapy.Spider):
                                                             'elem_ID':[elem_ID],\
                                                              'elem_title':[elem_title],\
                                                              'elem_price':[elem_price],\
+                                                             'elem_original_price':[elem_original_price],\
                                                              'elem_order':[elem_order],\
                                                              'elem_feedback':[elem_feedback],\
                                                              'elem_star':[elem_star],\

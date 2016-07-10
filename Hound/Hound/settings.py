@@ -25,16 +25,14 @@ LOG_ENABLED = False
 ROBOTSTXT_OBEY = True
 
 PROXIES = [
-  {'ip_port': '123.126.32.102:8080', 'user_pass': ''},
-  # {'ip_port': '222.161.209.164:8102', 'user_pass': ''},
-  # {'ip_port': '114.99.178.154:8118', 'user_pass': ''},
-  # {'ip_port': '121.33.226.167:3128', 'user_pass': ''},
-  # {'ip_port': '222.211.65.72:8080', 'user_pass': ''},
-  # {'ip_port': '119.188.94.145:80', 'user_pass': ''},
+# {'ip_port': '119.188.94.145:80', 'user_pass': ''},
+#  {'ip_port': '222.161.209.164:8102', 'user_pass': ''},
+ {'ip_port': '59.53.63.45:8080', 'user_pass': ''},
+ #   {'ip_port': '211.103.20.143:3128', 'user_pass': ''},
 ]
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-# CONCURRENT_REQUESTS = 32
+# CONCURRENT_REQUESTS = 16
 
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
@@ -58,15 +56,15 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
+# SPIDER_MIDDLEWARES = {
 #    'doubanmoive.middlewares.MyCustomSpiderMiddleware': 543,
-#}
+# }
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
+# DOWNLOADER_MIDDLEWARES = {
 #    'doubanmoive.middlewares.MyCustomDownloaderMiddleware': 543,
-#}
+# }
 # DOWNLOADER_MIDDLEWARES = {
 #     'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,
 #     'Hound.middlewares.ProxyMiddleware': 100,

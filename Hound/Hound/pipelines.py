@@ -58,13 +58,25 @@ class AliPipeline(object):
                 print 'new:'+name
         else :
             try:
+                self.createVar[name] = self.createVar[name].append(item['df'])
+                print name
+                print len(self.createVar[name])
+            except Exception,e:
+                print Exception,":",e
+                self.createVar[name] = item['df']
+                print 'new:'+name
+
+            try:
                 print self.createVar[name]
                 self.createVar[name] = self.data_reduction(self.createVar[name])
                 self.createVar[name].to_csv('data/'+name+'.csv')
                 self.saveExcel(self.createVar[name],name)
                 del self.createVar[name]
             except Exception,e:
-                print Exception,":",e
+                print '#######################################################################################################################################'
+                print 'EndFlag = 1'
+                print 'Error Item: ',self.createVar[name]
+                print 'Error message: ',Exception,":",e
         return item
 
 
@@ -83,6 +95,9 @@ class AliPipeline(object):
         elem_price           = data['elem_price'].values
         elem_price_low       = elem_price.copy()  # shallow copy ,(deepcopy() for deep copy)
         elem_price_high      = elem_price.copy()
+        elem_original_price           = data['elem_original_price'].values
+        elem_original_price_low       = elem_original_price.copy()  # shallow copy ,(deepcopy() for deep copy)
+        elem_original_price_high      = elem_original_price.copy()
         elem_star            = data['elem_star'].values
         store_feedbackscore  = data['store_feedbackscore'].values
         store_sellerpositivefeedbackpercentage = data['store_sellerpositivefeedbackpercentage'].values
@@ -119,6 +134,20 @@ class AliPipeline(object):
                         elem_price_low[i]  = float(elem_price_temp[0])
                         elem_price_high[i] = float(elem_price_temp[1])
 
+                if elem_original_price[i]=='none':
+                    elem_original_price_low[i] = np.nan
+                    elem_original_price_high[i] = np.nan
+                else:
+                    elem_original_price[i] = elem_original_price[i].replace('US $','')
+                    elem_original_price[i] = elem_original_price[i].replace(',','')
+                    if elem_original_price[i].find(' - ') == -1:
+                        elem_original_price_low[i]  = float(elem_original_price[i])
+                        elem_original_price_high[i] = float(elem_original_price[i])
+                    else:
+                        elem_original_price_temp = elem_original_price[i].split(' - ')
+                        elem_original_price_low[i]  = float(elem_original_price_temp[0])
+                        elem_original_price_high[i] = float(elem_original_price_temp[1])
+
                 if elem_star[i]=='none':
                     elem_star[i] = np.nan
                 else:
@@ -140,6 +169,7 @@ class AliPipeline(object):
                 print 'elem_feedback: ',elem_feedback[i]
                 print 'elem_order: ',elem_order[i]
                 print 'elem_price: ',elem_price[i]
+                print 'elem_original_price: ',elem_original_price[i]
                 print 'elem_star: ',elem_star[i]
                 print 'store_feedbackscore: ',store_feedbackscore[i]
                 print 'store_sellerpositivefeedbackpercentage: ',store_sellerpositivefeedbackpercentage[i]
@@ -148,8 +178,13 @@ class AliPipeline(object):
         data['elem_order']              = elem_order
         data['elem_price_low_Dollar']   = elem_price_low
         data['elem_price_high_Dollar']  = elem_price_high
+        data['elem_original_price_low_Dollar']   = elem_original_price_low
+        data['elem_original_price_high_Dollar']  = elem_original_price_high
+        data['sell_off_LvsL']           = data['elem_price_low_Dollar']/data['elem_original_price_low_Dollar']
+        data['sell_off_HvsH']          = data['elem_price_high_Dollar']/data['elem_original_price_high_Dollar']
         data['elem_star']               = elem_star
         data['store_feedbackscore']     = store_feedbackscore
         data['store_sellerpositivefeedbackpercentage'] = store_sellerpositivefeedbackpercentage
         del data['elem_price']
+        del data['elem_original_price']
         return data
