@@ -26,13 +26,19 @@ ROBOTSTXT_OBEY = True
 
 PROXIES = [
 # {'ip_port': '119.188.94.145:80', 'user_pass': ''},
-#  {'ip_port': '222.161.209.164:8102', 'user_pass': ''},
- {'ip_port': '59.53.63.45:8080', 'user_pass': ''},
- #   {'ip_port': '211.103.20.143:3128', 'user_pass': ''},
+#         {'ip_port': '14.223.62.208:8080', 'user_pass': ''},
+#         {'ip_port': '122.96.59.102:83', 'user_pass': ''},
+        {'ip_port': '183.129.151.130:80', 'user_pass': ''}, ##
+        {'ip_port': '222.211.65.72:8080', 'user_pass': ''}, ###
+#         {'ip_port': '119.181.12.112:8118', 'user_pass': ''},
+        {'ip_port': '222.161.209.164:8102', 'user_pass': ''}, ##
+        {'ip_port': '27.12.252.200:8080', 'user_pass': ''}, ##
 ]
 
+REDIRECT_ENABLED=False
+
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-# CONCURRENT_REQUESTS = 16
+CONCURRENT_REQUESTS = 2
 
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay

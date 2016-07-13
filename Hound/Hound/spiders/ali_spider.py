@@ -8,6 +8,20 @@ class AliSpider(scrapy.Spider):
     name = "ali"
     allowed_domains = ["aliexpress.com"]
 
+    df_null = pd.DataFrame({'count':[],\
+                                    'elem_ID':[],\
+                                     'elem_title':[],\
+                                     'elem_price':[],\
+                                     'elem_original_price':[],\
+                                     'elem_order':[],\
+                                     'elem_feedback':[],\
+                                     'elem_star':[],\
+                                     'elem_store':[],\
+                                     'store_feedbackscore':[],\
+                                     'store_sellerpositivefeedbackpercentage':[],\
+                                     'elem_ship':[]
+                                    })
+
     headers = {
         'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Encoding':'gzip, deflate, sdch',
@@ -19,26 +33,53 @@ class AliSpider(scrapy.Spider):
         'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36 Core/1.47.640.400 QQBrowser/9.4.8309.400'
     }
 
-    index_df = pd.read_csv('data/item_list.csv')
+    index_df = pd.read_csv(U'F:/GitHub/Hound_data/item_list.csv')
+
     def __init__(self, start=0,end=0, *args, **kwargs):
         super(AliSpider, self).__init__(*args, **kwargs)
-        print start
-        print end
-        self.start_urls = (pd.read_csv('data/item_list.csv'))['item_url'].values[int(start):int(end)]  #8:31start
+        print int(start)
+        print int(end)
 
-    # print len(start_urls)
-    # print start_urls
-    # start_urls = [
-    #     'http://www.aliexpress.com/category/200003673/daytime-running-lights.html?site=glo&g=y',
-    #     'http://www.aliexpress.com/category/200002624/tablet-pc-stands.html?site=glo&shipCountry=all',
-    #     # 'http://www.aliexpress.com/category/200084019/wearable-devices.html?site=glo&shipCountry=all',
-    #     # 'http://www.aliexpress.com/category/14191206/cable-ties.html?site=glo&shipCountry=all',
-    #     # 'http://www.aliexpress.com/category/100006194/pu-er-tea.html?site=glo&shipCountry=all',
-    # ]
+        self.start_urls = []
+        urls = ((pd.read_csv(U'F:/GitHub/Hound_data/item_list.csv'))['item_url'].values)[int(start):int(end)]
+        # print urls
+
+        count = 0
+        for url in urls:
+            print count
+            count = count + 1
+            name =  self.index_df[self.index_df['item_url'] == url]
+            name = (name['catepory'].values)[0] + '_' + (name['son_catepory'].values)[0] + '_' + (name['gra_son_cate'].values)[0] + '_' + (name['gg_son_cate'].values)[0]
+            name = name.replace(' ','')
+            name = name.replace("'",'')
+            name = name.replace('&','')
+            name = name.replace('/','_')
+            name = name.replace('"','')
+            name = name.replace('*','x')
+            name = name.replace('<','')
+            name = name.replace('>','')
+            print name
+            try:
+                # df = pd.read_csv('data/'+name+'.csv')
+                df = pd.read_csv(U'F:/GitHub/Hound_data/'+name+'.csv')
+            except:
+                print '#######################miss:',name
+                print url
+                self.start_urls.append(url)
+
+        # self.start_urls = (pd.read_csv(U'F:/GitHub/Hound_data/item_list.csv'))['item_url'].values[int(start):int(end)]  #8:31start
+
+        print 'urls length:',len(self.start_urls)
+
+        # self.start_urls = [
+        #                    'http://www.aliexpress.com/category/200010076/tube-tops.html?site=glo&g=y&attrRel=or&pvId=5-200000990',
+        #                      ]
+
 
 
     def parse(self, response,StartFlag = 1,name='',category='1',son_cate='1',grand_cate='1',gg_son_cate='1'):
         print '#########'
+        print response.url
         if StartFlag == 1:
             print 'StartFlag == 1'
             name =  self.index_df[self.index_df['item_url'] == response.url]
@@ -50,27 +91,42 @@ class AliSpider(scrapy.Spider):
             name = name.replace(' ','')
             name = name.replace("'",'')
             name = name.replace('&','')
+            name = name.replace('/','_')
+            name = name.replace('"','')
+            name = name.replace('*','x')
+            name = name.replace('<','')
+            name = name.replace('>','')
             print name
-            # print category,son_cate,grand_cate,gg_son_cate
-        # else:
-            # print name
-            # print category,son_cate,grand_cate,gg_son_cate
+
         try:
             soup                           = BeautifulSoup(response.body, "html.parser")
-            # [category,son_cate,grand_cate] = self.get_relation(soup)
+        except Exception,e:
+            print '#######################################################################################################################################'
+            print 'soup read error: ',name
+            print Exception,":",e
+
+        try:
             df                             = self.get_item(soup)
+        except Exception,e:
+            print '#######################################################################################################################################'
+            print 'get item error: ',name
+            print Exception,":",e
+        try:
             next_url                       = self.getNextPage(soup)
             print   next_url
         except Exception,e:
+            print '#######################################################################################################################################'
+            print 'get next url error: ',name
             print Exception,":",e
 
-        # print next_url
         item = HoundItem()
         if next_url == 'none':
             item['end_flag'] = 1
         else:
-
             item['end_flag'] = 0
+
+        # item['end_flag'] = 1
+
         try:
             item['name'] = name   ### no data rerurn in the cwarl end ,need to debug
             df['category'] = category
@@ -89,8 +145,10 @@ class AliSpider(scrapy.Spider):
         try:
             elems = soup.find_all('a',class_='page-next ui-pagination-next')
             next_url = 'http:'+elems[0].get('href')
+            print 'next url:'
             return next_url
         except:
+            print 'next url:'
             return 'none'
 
     def get_relation(self,soup):
@@ -117,43 +175,120 @@ class AliSpider(scrapy.Spider):
             elems = soup.find_all('div',id='main-wrap')
             page_type = elems[0].get('class')
         except Exception,e:
+            print 'get item page type error'
             print Exception,":",e
-
         if page_type[1] == 'gallery-mode': #'main-wrap gallery-mode'
             return self.get_item_sub1(soup)
         elif page_type[1] == '': #'main-wrap '
             return self.get_item_sub2(soup)
         else:
-            print 'none'
-            return 'none'
+            print self.df_null
+            return self.df_null
 
     def get_item_sub1(self,soup):
+        print 'get item mode 1'
         results = pd.DataFrame({})
-        elems = soup.find_all('div',id='list-items')
-        if len(elems) == 0:
-            return 'no items'
+        elems = soup.find_all('div',id='gallery-item')
+        try:
+            elems = elems[0].find_all('div',id='list-items')
+        except:
+            return self.df_null
+
         elems = elems[0].find_all('li')
         if len(elems) == 0:
-            return 'no items'
+            return self.df_null
         print len(elems)
         for i in range(len(elems)):
-            elem_ID = elems[i].get('qrdata')
-            elem_info = elems[i].find_all('div',class_='info')
-            elem_title = elem_info[0].find_all('h3')
-            elem_title = elem_title[0].find_all('a')
+            try:
+                elem_ID = elems[i].get('qrdata')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_ID error'
 
-            elem_price = elem_info[0].find_all('span',class_='value')
-            elem_original_price = elem_info[0].find_all('del',class_='original-price')
-            elem_order = elem_info[0].find_all('em',title='Total Orders')
-            elem_star     = elem_info[0].find_all('span',class_='star star-s')
-            elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
+            try:
+                elem_info = elems[i].find_all('div',class_='info')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_info error'
 
-            elem_infomore = elems[i].find_all('div',class_='info-more')
-            elem_store    = elem_infomore[0].find_all(name='a', attrs={'class':re.compile(r"(store|store j-p4plog)")})
+            try:
+                elem_title = elem_info[0].find_all('h3')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_title1 error'
 
-            store_property = elem_infomore[0].find_all('img',class_='score-icon')
+            try:
+                elem_title = elem_title[0].find_all('a')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_title2 error'
 
-            elem_title = elem_title[0].text
+            try:
+                elem_price = elem_info[0].find_all('span',class_='value')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_price error'
+
+            try:
+                elem_original_price = elem_info[0].find_all('del',class_='original-price')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_original_price error'
+
+            try:
+                elem_order = elem_info[0].find_all('em',title='Total Orders')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_order error'
+
+            try:
+                elem_star     = elem_info[0].find_all('span',class_='star star-s')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_star error'
+
+            try:
+                elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_feedback error'
+
+            try:
+                elem_infomore = elems[i].find_all('div',class_='info-more')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_infomore error'
+
+            try:
+                elem_store    = elem_infomore[0].find_all(name='a', attrs={'class':re.compile(r"(store|store j-p4plog)")})
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_store error'
+
+            try:
+                store_property = elem_infomore[0].find_all('img',class_='score-icon')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get store_property error'
+
+            try:
+                elem_title = elem_title[0].text
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_title error'
 
 
             try:
@@ -168,6 +303,7 @@ class AliSpider(scrapy.Spider):
                         elem_ship = 'none'
             except Exception,e:
                 print Exception,":",e
+                print '#######################################################################################################################################'
                 print 'mode 1 elem_ship error'
                 elem_ship = 'error'
 
@@ -224,39 +360,99 @@ class AliSpider(scrapy.Spider):
         return results
 
     def get_item_sub2(self,soup):
+        print 'get item mode 2'
         results = pd.DataFrame({})
         elems = soup.find_all('ul',id='list-items')
         if len(elems) == 0:
-            return 'no items'
+            return self.df_null
 
         elems = elems[0].find_all('li')
-
         if len(elems) == 0:
-            return 'no items'
+            return self.df_null
         print len(elems)
         for i in range(len(elems)):
-            elem_ID = elems[i].get('qrdata')
-            elem_detail = elems[i].find_all('div',class_='detail')
-            elem_info   = elems[i].find_all('div',class_='info infoprice')
-            elem_title = elem_detail[0].find_all('h3')
-            elem_title = elem_title[0].find_all('a')
-
-            elem_price    = elem_info[0].find_all('span',class_='value')
-            elem_original_price = elem_info[0].find_all('del',class_='original-price')
-            elem_order    = elems[0].find_all('em',title='Total Orders')
-            elem_star     = elem_info[0].find_all('span',class_='star star-s')
-            elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
-
-            elem_infomore = elems[i].find_all('div',class_='info-more')
-            elem_store    = elem_detail[0].find_all(name='a', attrs={'class':re.compile(r"(store|store j-p4plog)")})
-
-            store_property = elem_detail[0].find_all('img',class_='score-icon')
-
-            elem_title = elem_title[0].text
+            try:
+                elem_ID = elems[i].get('qrdata')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_ID error'
 
             try:
-                elem_ship = elem_info[0].find_all('dd',class_='price')
-                # print elem_ship                                                     ## need to debug  why all is freeshiping
+                elem_detail = elems[i].find_all('div',class_='detail')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_detail error'
+
+            try:
+                elem_info   = elems[i].find_all('div',class_='info infoprice')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_info error'
+
+            try:
+                elem_title = elem_detail[0].find_all('h3')
+                elem_title = elem_title[0].find_all('a')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_title error'
+
+            try:
+                elem_price    = elem_info[0].find_all('span',class_='value')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_price error'
+
+            try:
+                elem_original_price = elem_info[0].find_all('del',class_='original-price')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_original_price error'
+
+            try:
+                elem_order    = elems[0].find_all('em',title='Total Orders')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_order error'
+
+            try:
+                elem_star     = elem_info[0].find_all('span',class_='star star-s')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_star error'
+
+            try:
+                elem_feedback = elem_info[0].find_all('a',class_='rate-num ')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_feedback error'
+
+            # elem_infomore = elems[i].find_all('div',class_='info-more')
+            try:
+                elem_store    = elem_detail[0].find_all(name='a', attrs={'class':re.compile(r"(store|store j-p4plog)")})
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get elem_store error'
+
+            try:
+                store_property = elem_detail[0].find_all('img',class_='score-icon')
+            except Exception,e:
+                print '#######################################################################################################################################'
+                print Exception,":",e
+                print 'get store_property error'
+
+
+
+            try:
                 elem_ship = elem_info[0].find_all('strong')
                 # print elem_ship
                 if len(elem_ship) != 0:
@@ -268,9 +464,11 @@ class AliSpider(scrapy.Spider):
                     else:
                         elem_ship = 'none'
             except Exception,e:
+                print '#######################################################################################################################################'
                 print Exception,":",e
-                print 'mode 2 elem_ship error'
-                elem_ship = 'error'
+                print 'get elem_ship error'
+
+            elem_title = elem_title[0].text
 
             try:
                 elem_price = elem_price[0].text

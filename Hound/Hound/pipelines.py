@@ -34,7 +34,7 @@ class AliListPipeline(object):
         if self.count >= 3020:
             print 'save :',self.count
             self.saveExcel(self.df,'item_list')
-            self.df.to_csv('data/item_list.csv')
+            self.df.to_csv(U'F:/GitHub/Hound_data/item_list.csv')
         return item
 
 
@@ -47,6 +47,7 @@ class AliPipeline(object):
         print '#############################################'
         print item['end_flag']
         name = item['name']
+        # print 'item len: ',len(item['df'])
         if item['end_flag'] == 0:
             try:
                 self.createVar[name] = self.createVar[name].append(item['df'])
@@ -54,8 +55,15 @@ class AliPipeline(object):
                 print len(self.createVar[name])
             except Exception,e:
                 print Exception,":",e
-                self.createVar[name] = item['df']
-                print 'new:'+name
+                try:
+                    self.createVar[name] = item['df']
+                    print 'new:'+name
+                except Exception,e:
+                    print '#######################################################################################################################################'
+                    print 'item df error'
+                    print type(item['df'])
+                    print item['df']
+
         else :
             try:
                 self.createVar[name] = self.createVar[name].append(item['df'])
@@ -63,13 +71,21 @@ class AliPipeline(object):
                 print len(self.createVar[name])
             except Exception,e:
                 print Exception,":",e
-                self.createVar[name] = item['df']
-                print 'new:'+name
+                try:
+                    self.createVar[name] = item['df']
+                    print 'new:'+name
+                except Exception,e:
+                    print '#######################################################################################################################################'
+                    print 'item df error'
+                    self.createVar[name] = self.df_null
+                    print type(item['df'])
+                    # print item['df']
 
             try:
-                print self.createVar[name]
+                # print self.createVar[name]
                 self.createVar[name] = self.data_reduction(self.createVar[name])
-                self.createVar[name].to_csv('data/'+name+'.csv')
+                # self.createVar[name].to_csv('data/'+name+'.csv')
+                self.createVar[name].to_csv(U'F:/GitHub/Hound_data/'+name+'.csv')
                 self.saveExcel(self.createVar[name],name)
                 del self.createVar[name]
             except Exception,e:
@@ -82,7 +98,8 @@ class AliPipeline(object):
 
 
     def saveExcel(self,df,name):
-        writer = pd.ExcelWriter('data/' + name+'.xlsx', engine='xlsxwriter')
+        # writer = pd.ExcelWriter('data/' + name+'.xlsx', engine='xlsxwriter')
+        writer = pd.ExcelWriter(U'F:/GitHub/Hound_data/' + name+'.xlsx', engine='xlsxwriter')
         df.to_excel(writer, sheet_name='Sheet1')
         writer.save()
 
