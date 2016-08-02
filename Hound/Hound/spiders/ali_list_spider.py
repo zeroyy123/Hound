@@ -3,6 +3,8 @@ from Hound.items import AliListItem
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
+import copy
+from AliList import *
 
 class AliSpider(scrapy.Spider):
     name = "ali_list"
@@ -13,157 +15,49 @@ class AliSpider(scrapy.Spider):
 
     def parse(self, response):
         print '#########'
-        soup = BeautifulSoup(response.body, "html.parser")
-        elems = soup.find_all('div',class_='cg-main')
-        elems = elems[0].find_all('li')
-        # print len(elems)
-        for elem in elems:
-            elem = elem.find_all('a')
-            elem_url = 'http:' + elem[0].get('href')
-            print elem_url
-            print elem[0].text
-            yield scrapy.Request(elem_url, callback=self.subParse)
+        top_list = AliList(response)
+        [elems_name,elems_parent,elems_url] = top_list.get_top_list()
+        L = len(elems_name)
+        for i in range(L):
+            yield scrapy.Request(elems_url[i], callback=lambda response,cates=[elems_parent[i],elems_name[i]],:self.subParse(response,cates))
 
-    def subParse(self,response):
-        soup = BeautifulSoup(response.body, "html.parser")
-        elems = soup.find_all('dl',class_='son-category')
-        if len(elems) == 0:
-            print 'start great grand index scanning !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-            print 'parent url:',response.url
-            temp = soup.find_all('div',id='broad-category-main')
-            # print len(temp)
-            temp = temp[0].find_all('div',id='aliGlobalCrumb')
-            temp = temp[0].find_all('h1')
-            catepory     = (temp[0].find_all('a'))[0].text
-            son_catepory = (temp[0].find_all('span'))[1].text
-            # print catepory
-            # print son_catepory
-            elems = soup.find_all('div',class_='son-bc-list-wrap')
+    def subParse(self,response,cates):
+        List = AliList(response)
+        [elems,mode] = List.index_mode_adjust()
+        if mode ==  'list mode':
+            elems = List.get_li_listmode(elems)
             if len(elems) == 0:
-                elems = soup.find_all('div',class_='bc-list-wrap')
-            # print len(elems)
-            elems = elems[0].find_all('ul',class_='bc-list bc-ul bc-list-not-standard')
-            # print 'grand index 1 :',len(elems)
-            # print elems
-            elems = elems[0].find_all('li',class_='bc-cate-has-child')   ##maybe miss some item which have not child
-            # print 'grand index :',len(elems)
-            # for elem in elems:
-            #     print elem
-            for elem in elems:
-                gra_son_cate = (elem.find_all('a'))[0].text
-                # print gra_son_cate
-                sub_elems = elem.find_all('li')
-                for sub_elem in sub_elems:
-                    print 'Great grand index'
-                    print 'parent url:',response.url
-                    item_url = 'http:' + sub_elem.find_all('a')[0].get('href')
-                    item_name = sub_elem.find_all('a')[0].text
-                    print '###gg_son_cate:',item_name
-                    item = AliListItem()
-                    item['catepory'] = catepory
-                    item['son_catepory'] = son_catepory
-                    item['gra_son_cate'] = gra_son_cate
-                    item['gg_son_cate'] = item_name
-                    item['search_count'] = 'none'
-                    item['item_url'] = item_url
-                    yield item
-        else:
-            elems = elems[0].find_all('li')
-            # print len(elems)
-            if len(elems) == 0:
-                print 'No grand index'
-                print 'parent url:',response.url
-
-                temp = soup.find_all('dl',class_='category-list  ')
-                if len(temp) == 0:
-                    temp = soup.find_all('dl',class_='category-list  category-list-none-border ')
-
-                if len(temp) == 0:
-                    print 'get category-list error'
-
-                catepory = temp[0].find_all('dt',class_='sn-parent-title')
-                catepory = catepory[0].find_all('a')
-                catepory = catepory[0].text
-                catepory = catepory.replace('<','')
-                catepory = catepory.replace('\n','')
-                catepory = catepory.replace('					','')
-
-                temp = temp[0].find_all('dd')
-                temp = temp[0].find_all('dd')
-                if len(temp[0].find_all('dd')) == 0:
-                    # print '********'
-                    temp = temp[0].find_all('dt',class_='sn-parent-title')
-                    temp = temp[0].find_all('span')
-                    son_catepory = temp[0].text
-                else:
-                    # print '#########'
-                    temp = temp[0].find_all('dd')
-                    temp = temp[0].find_all('dt',class_='sn-parent-title')
-                    temp = temp[0].find_all('span')
-                    son_catepory = temp[0].text
-
-                temp = soup.find_all('strong',class_='search-count')
-                search_count = temp[0].text
-                gra_son_cate = 'none'
-
-                item_url = response.url
-
+                [item_name,item_url,search_count] = List.get_item_detial()
+                cates_sub = copy.copy(cates)
+                cates_sub.append(item_name)
+                print 'end node'
+                print cates_sub
+                print 'search_count: ',search_count
+                print 'category length: ',len(cates_sub)
+                print item_url
                 item = AliListItem()
-                item['catepory'] = catepory
-                item['son_catepory'] = son_catepory
-                item['gra_son_cate'] = gra_son_cate
-                item['gg_son_cate'] = 'none'
+                for i in range(5):
+                    temp = 'cate_'+str(i+1)
+                    if (i+1) < len(cates_sub):
+                        item[temp] = cates_sub[i]
+                    else:
+                        item[temp] = ''
                 item['search_count'] = search_count
                 item['item_url'] = item_url
-                # print item
                 yield item
             else:
                 for elem in elems:
-                    print 'With grand index'
-                    print 'parent url:',response.url
-
-                    temp = soup.find_all('dl',class_='category-list  ')
-                    if len(temp) == 0:
-                        temp = soup.find_all('dl',class_='category-list  category-list-none-border ')
-
-                    if len(temp) == 0:
-                        print 'get category-list error'
-
-                    catepory = temp[0].find_all('dt',class_='sn-parent-title')
-                    catepory = catepory[0].find_all('a')
-                    catepory = catepory[0].text
-                    catepory = catepory.replace('<','')
-                    catepory = catepory.replace('\n','')
-                    catepory = catepory.replace('					','')
-
-                    temp = temp[0].find_all('dd')
-                    # temp = temp[0].find_all('dd')
-                    if len(temp[0].find_all('dd')) == 0:
-                        # print '********'
-                        temp = temp[0].find_all('dt',class_='sn-parent-title')
-                        temp = temp[0].find_all('span')
-                        son_catepory = temp[0].text
-                    else:
-                        # print '#########'
-                        temp = temp[0].find_all('dd')
-                        temp = temp[0].find_all('dt',class_='sn-parent-title')
-                        temp = temp[0].find_all('span')
-                        son_catepory = temp[0].text
-
-                    temp = elem.find_all('a')
-                    gra_son_cate = temp[0].text
-
-                    temp = elem.find_all('span')
-                    search_count = temp[0].text
-
-                    temp = elem.find_all('a')
-                    item_url = 'http:' + temp[0].get('href')
-
-                    item = AliListItem()
-                    item['catepory'] = catepory
-                    item['son_catepory'] = son_catepory
-                    item['gra_son_cate'] = gra_son_cate
-                    item['gg_son_cate'] = 'none'
-                    item['search_count'] = search_count
-                    item['item_url'] = item_url
-                    yield item
+                    [item_name,item_url] = List.get_next_url(elem)
+                    cates_sub = copy.copy(cates)
+                    cates_sub.append(item_name)
+                    yield scrapy.Request(item_url, callback=lambda response,cates=cates_sub,:self.subParse(response,cates))
+        elif mode ==  'broad mode':
+            [items_name,items_url,items_parent] = List.get_li_detial_boardmode()
+            for i in range(len(items_name)):
+                cates_sub = copy.copy(cates)
+                if items_parent[i] != '':
+                    cates_sub.append(items_parent[i])
+                cates_sub.append(items_name[i])
+                yield scrapy.Request(items_url[i], callback=lambda response,cates=cates_sub,:self.subParse(response,cates))
+        else:
+            print 'mode adjust error'

@@ -14,7 +14,7 @@ class AliListPipeline(object):
         self.count = 0
 
     def saveExcel(self,df,name):
-        writer = pd.ExcelWriter('data/' + name+'.xlsx', engine='xlsxwriter')
+        writer = pd.ExcelWriter(U'F:/GitHub/Hound_data/' + name+'.xlsx', engine='xlsxwriter')
         df.to_excel(writer, sheet_name='Sheet1')
         writer.save()
 
@@ -22,16 +22,17 @@ class AliListPipeline(object):
         self.count = self.count + 1
         # print item
         print self.count
-        temp = pd.DataFrame({'catepory':[item['catepory']],\
-                             'son_catepory':[item['son_catepory']],\
-                             'gra_son_cate':[item['gra_son_cate']],\
-                             'gg_son_cate':[item['gg_son_cate']],\
+        temp = pd.DataFrame({'cate_1':[item['cate_1']],\
+                             'cate_2':[item['cate_2']],\
+                             'cate_3':[item['cate_3']],\
+                             'cate_4':[item['cate_4']],\
+                             'cate_5':[item['cate_5']],\
                              'search_count':[item['search_count']],\
                              'item_url':[item['item_url']] \
                              })
         # print self.df
         self.df = self.df.append(temp)
-        if self.count >= 3020:
+        if self.count >= 2800:
             print 'save :',self.count
             self.saveExcel(self.df,'item_list')
             self.df.to_csv(U'F:/GitHub/Hound_data/item_list.csv')

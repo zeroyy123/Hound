@@ -14,10 +14,11 @@ class HoundItem(scrapy.Item):
     end_flag = scrapy.Field()
 
 class AliListItem(scrapy.Item):
-    catepory     = scrapy.Field()
-    son_catepory = scrapy.Field()
-    gra_son_cate = scrapy.Field()
-    gg_son_cate  = scrapy.Field()
+    cate_1       = scrapy.Field()
+    cate_2       = scrapy.Field()
+    cate_3       = scrapy.Field()
+    cate_4       = scrapy.Field()
+    cate_5       = scrapy.Field()
     search_count = scrapy.Field()
     item_url     = scrapy.Field()
 

@@ -34,38 +34,37 @@ class AliSpider(scrapy.Spider):
     }
 
     index_df = pd.read_csv(U'F:/GitHub/Hound_data/item_list.csv')
-
+    print len(index_df)
     def __init__(self, start=0,end=0, *args, **kwargs):
         super(AliSpider, self).__init__(*args, **kwargs)
         print int(start)
         print int(end)
 
         self.start_urls = []
-        # urls = ((pd.read_csv(U'F:/GitHub/Hound_data/item_list.csv'))['item_url'].values)[int(start):int(end)]
-        #
-        #
-        # count = 0
-        # for url in urls:
-        #     print count
-        #     count = count + 1
-        #     name =  self.index_df[self.index_df['item_url'] == url]
-        #     name = (name['catepory'].values)[0] + '_' + (name['son_catepory'].values)[0] + '_' + (name['gra_son_cate'].values)[0] + '_' + (name['gg_son_cate'].values)[0]
-        #     name = name.replace(' ','')
-        #     name = name.replace("'",'')
-        #     name = name.replace('&','')
-        #     name = name.replace('/','_')
-        #     name = name.replace('"','')
-        #     name = name.replace('*','x')
-        #     name = name.replace('<','')
-        #     name = name.replace('>','')
-        #     print name
-        #     try:
-        #         # df = pd.read_csv('data/'+name+'.csv')
-        #         df = pd.read_csv(U'F:/GitHub/Hound_data/'+name+'.csv')
-        #     except:
-        #         print '#######################miss:',name
-        #         print url
-        #         self.start_urls.append(url)
+        urls = ((pd.read_csv(U'F:/GitHub/Hound_data/item_list.csv'))['item_url'].values)[int(start):int(end)]
+
+        count = 0
+        for url in urls:
+            print count
+            count = count + 1
+            name =  self.index_df[self.index_df['item_url'] == url]
+            name = (name['catepory'].values)[0] + '_' + (name['son_catepory'].values)[0] + '_' + (name['gra_son_cate'].values)[0] + '_' + (name['gg_son_cate'].values)[0]
+            name = name.replace(' ','')
+            name = name.replace("'",'')
+            name = name.replace('&','')
+            name = name.replace('/','_')
+            name = name.replace('"','')
+            name = name.replace('*','x')
+            name = name.replace('<','')
+            name = name.replace('>','')
+            print name
+            try:
+                # df = pd.read_csv('data/'+name+'.csv')
+                df = pd.read_csv(U'F:/GitHub/Hound_data/'+name+'.csv')
+            except:
+                print '#######################miss:',name
+                print url
+                self.start_urls.append(url)
 
         # self.start_urls = (pd.read_csv(U'F:/GitHub/Hound_data/item_list.csv'))['item_url'].values[int(start):int(end)]  #8:31start
 
@@ -74,8 +73,8 @@ class AliSpider(scrapy.Spider):
         # self.start_urls = [
         #                    'http://www.aliexpress.com/category/200010076/tube-tops.html?site=glo&g=y&attrRel=or&pvId=5-200000990',
         #                      ]
-        self.start_urls = ['http://www.aliexpress.com/category/200004775/radar-detectors.html?site=glo&pvId=200000182-193&attrRel=or',]
-        print self.start_urls
+        # self.start_urls = ['http://www.aliexpress.com/category/200004775/radar-detectors.html?site=glo&pvId=200000182-193&attrRel=or',]
+        # print self.start_urls
 
 
     def parse(self, response,StartFlag = 1,name='',category='1',son_cate='1',grand_cate='1',gg_son_cate='1'):
