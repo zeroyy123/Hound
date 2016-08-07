@@ -38,7 +38,7 @@ PROXIES = [
 REDIRECT_ENABLED=False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 2
+CONCURRENT_REQUESTS = 3
 
 # Configure a delay for requests for the same website (default: 0)
 # See http://scrapy.readthedocs.org/en/latest/topics/settings.html#download-delay
@@ -86,8 +86,8 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    # 'Hound.pipelines.AliPipeline': 300
-    'Hound.pipelines.AliListPipeline': 300
+    'Hound.pipelines.AliPipeline': 300
+    # 'Hound.pipelines.AliListPipeline': 300
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

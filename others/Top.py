@@ -10,7 +10,7 @@ def data_merge():
     item_name = []
     item_catepory = []
     for i in range(L):
-        name = (df['catepory'].values)[i] + '_' + (df['son_catepory'].values)[i] + '_' + (df['gra_son_cate'].values)[i] + '_' + (df['gg_son_cate'].values)[i]
+        name = (name['cate_1'].values)[0] + '_' + (name['cate_2'].values)[0] + '_' + (name['cate_3'].values)[0] + '_' + (name['cate_4'].values)[0] + '_' + (name['cate_5'].values)[0]
         name = name.replace(' ','')
         name = name.replace("'",'')
         name = name.replace('&','')
@@ -21,7 +21,7 @@ def data_merge():
         name = name.replace('>','')
         item_name.append(name)
 
-        catepory = (df['catepory'].values)[i]
+        catepory = (df['cate_1'].values)[i]
         catepory = catepory.replace(' ','')
         catepory = catepory.replace("'",'')
         catepory = catepory.replace('&','')
