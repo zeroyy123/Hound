@@ -1,5 +1,5 @@
 import scrapy
-from Hound.items import HoundItem
+from items import HoundItem
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
