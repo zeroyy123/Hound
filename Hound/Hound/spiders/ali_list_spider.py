@@ -1,5 +1,5 @@
 import scrapy
-from Hound.items import AliListItem
+from items import AliListItem
 from bs4 import BeautifulSoup
 import pandas as pd
 import re

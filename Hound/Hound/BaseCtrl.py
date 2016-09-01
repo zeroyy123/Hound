@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
 import pandas as pd
 import MysqlDriver as MD
+import numpy as np
+import settings
 
 class BaseCtrl():
     def __init__(self):
-        self.list_path  = U'F:/GitHub/Hound_data/item_list.csv'
+        self.list_path  = U'F:/GitHub/Hound_data/'
 
     def symbol_prune(self,symbol):
         symbol = symbol.replace(' ','')
@@ -17,12 +19,88 @@ class BaseCtrl():
         symbol = symbol.replace('>','')
         return symbol
 
+    def set_pipelines(self,target):
+        if target == 'ali_list_spider':
+            settings.ITEM_PIPELINES = {
+             'Hound.pipelines.AliListPipeline': 300
+            }
+        elif target == 'ali_spider':
+            settings.ITEM_PIPELINES = {
+            'Hound.pipelines.AliPipeline': 300
+            }
+
     def saveExcel(self,df,name):
         writer = pd.ExcelWriter(U'F:/GitHub/Hound_data/' + name+'.xlsx', engine='xlsxwriter')
         df.to_excel(writer, sheet_name='Sheet1')
         writer.save()
 
-    def merge_index_gen(self):
+    def list_duplicate_delete(self,list_name = 'item_list'):
+        cate_scan_len = 10
+        list_path = self.list_path + list_name + '.csv'
+        df = pd.read_csv(list_path)
+        df['duplicate_mark'] = 0
+        for i in range(len(df)):
+            if i < len(df)-1:
+                for j in range(i+1,len(df),1):
+                    if df['item_url'].values[j] == df['item_url'].values[i]:
+                        df['duplicate_mark'].values[j] = 1
+                        print 'url duplicate: ',j
+                        print 'data:',df.values[j]
+        for i in range(len(df)-1,0,-1):
+            if df['duplicate_mark'].values[i] == 1:
+                df = df.drop(i)
+
+        df['cates'] = ''
+        for i in range(len(df)):
+            temp_cates = ''
+            for j in range(1,cate_scan_len,1):
+                temp_name = 'cate_'+str(j)
+                try:
+                    a = df[temp_name].values[i]
+                    temp_cates = temp_cates+df[temp_name].values[i]
+                except:
+                    break
+            df['cates'].values[i] = temp_cates
+        print df['cates'].values[0]
+
+        for i in range(len(df)):
+            if i < len(df)-1 and df['duplicate_mark'].values[i] != 1:
+                count_dul = 0
+                for j in range(i+1,len(df),1):
+                    if df['cates'].values[j] == df['cates'].values[i]:
+                        count_dul = count_dul + 1
+                        df['duplicate_mark'].values[j] = 1
+                        for k in range(1,cate_scan_len,1):
+                            temp_name = 'cate_'+str(k)
+                            try:
+                                if df[temp_name].values[j] == np.nan:
+                                    df[temp_name].values[j] = 'duplicates_'+str(count_dul)
+                                    break
+                            except:
+                                print 'k: ',k
+                                temp_name = 'cate_'+str(k-1)
+                                df[temp_name].values[j] = df[temp_name].values[j] + '_duplicates_'+str(count_dul)
+                                break
+                        print ''
+                        print 'cates duplicate: ',i,j,count_dul
+                        print 'data:',df.values[j]
+        df.to_csv(list_path)
+        return df
+
+    def check_results(self,df):
+        count = 0
+        for i in range(len(df)):
+            name = (df['cate_1'].values)[0] + '_' + (df['cate_2'].values)[0] + '_' + (df['cate_3'].values)[0] + '_' + (df['cate_4'].values)[0] + '_' + (df['cate_5'].values)[0]
+            name = self.symbol_prune(name)
+            try:
+                df = pd.read_csv(U'F:/GitHub/Hound_data/'+name+'.csv')
+            except:
+                count = count + 1
+                print '#######################miss:',name
+        return count
+
+    def merge_index_gen(self,list_name = 'item_list'):
+        list_path = self.list_path + list_name + '.csv'
         df = pd.read_csv(self.list_path)
         df = df.fillna('')
 
